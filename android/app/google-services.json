@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "715882159378",
+    "firebase_url": "https://controlacceso-403b0-default-rtdb.firebaseio.com",
+    "project_id": "controlacceso-403b0",
+    "storage_bucket": "controlacceso-403b0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715882159378:android:369871a164ba431c2b67cb",
+        "android_client_info": {
+          "package_name": "com.example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmJRJ8gVSUOuG52Dna3J965cBOM271S0I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
