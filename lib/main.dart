@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import '../login/users_provider.dart';
 import 'firebase_options.dart';
 import 'login/login_screen.dart';
-import 'admin/admin_home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UsuarioProvider()),
+      ],
+      child: const MyApp(), 
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -49,15 +57,6 @@ class InitialScreen extends StatelessWidget {
                 );
               },
               child: const Text('Iniciar Sesión'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-                );
-              },
-              child: const Text('Administrador'),
             ),
           ],
         ),

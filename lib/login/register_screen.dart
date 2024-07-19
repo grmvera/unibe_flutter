@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../login/users_provider.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,7 +16,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   String _errorMessage = '';
 
+  bool _isValidEmail(String email) {
+    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegExp.hasMatch(email);
+  }
+
   Future<void> _register() async {
+    final usuarioProvider =
+        Provider.of<UsuarioProvider>(context, listen: false);
+
+    if (usuarioProvider.userData?['role'] != 'admin') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+            'No cuentas con los permisos necesarios para realizar esta acción')),
+      );
+      return;
+    }
+
+    if (!_isValidEmail(_emailController.text)) {
+      setState(() {
+        _errorMessage = 'Por favor ingresa un correo electrónico válido';
+      });
+      return;
+    }
+
+    if (_passwordController.text.length < 8) {
+      setState(() {
+        _errorMessage = 'La contraseña debe tener al menos 8 caracteres';
+      });
+      return;
+    }
+
+    // Si se cumplen todas las condiciones, proceder con el registro
     try {
       await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
