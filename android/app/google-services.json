@@ -8,9 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:715882159378:android:369871a164ba431c2b67cb",
+        "mobilesdk_app_id": "1:715882159378:android:1f137259e172f85f2b67cb",
         "android_client_info": {
-          "package_name": "com.example"
+          "package_name": "com.example.unibe_app_control"
         }
       },
       "oauth_client": [],
