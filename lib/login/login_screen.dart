@@ -10,14 +10,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _auth = FirebaseAuth.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorMessage = '';
 
   Future<void> _login() async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -46,29 +45,22 @@ class _LoginScreenState extends State<LoginScreen> {
           children: <Widget>[
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: const InputDecoration(labelText: 'Correo'),
             ),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'Contraseña'),
               obscureText: true,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _login,
-              child: const Text('Login'),
+              child: const Text('Iniciar Sesión'),
             ),
             const SizedBox(height: 20),
             Text(
               _errorMessage,
               style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Back to Home'),
             ),
           ],
         ),

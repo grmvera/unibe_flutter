@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import '../login/users_provider.dart';
+import 'login/users_provider.dart';
 import 'firebase_options.dart';
 import 'login/login_screen.dart';
 
@@ -15,7 +15,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UsuarioProvider()),
       ],
-      child: const MyApp(), 
+      child: const MyApp(),
     ),
   );
 }

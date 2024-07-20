@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../login/login_screen.dart';
 import '../admin/admin_home_screen.dart';
+import 'package:provider/provider.dart';
+import '../login/users_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,31 +14,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Map<String, dynamic>? userData;
-
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
-  }
-
-  Future<void> _fetchUserData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (snapshot.exists) {
-        setState(() {
-          userData = snapshot.data();
-        });
-      }
-    }
+    final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
+    usuarioProvider.fetchUserData();
   }
 
   @override
   Widget build(BuildContext context) {
+    final usuarioProvider = Provider.of<UsuarioProvider>(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -55,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: Center(
-        child: userData != null
+        child: usuarioProvider.userData != null
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -66,11 +54,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text('Nombre: ${userData!['firstName']}'),
-                  Text('Apellido: ${userData!['lastName']}'),
+                  Text('Nombre: ${usuarioProvider.userData!['firstName']}'),
+                  Text('Apellido: ${usuarioProvider.userData!['lastName']}'),
                   // Display other user data as needed
-                  Text('Rol: ${userData!['role']}'),
-                  if (userData!['role'] == 'admin')
+                  Text('Rol: ${usuarioProvider.userData!['role']}'),
+                  if (usuarioProvider.userData!['role'] == 'admin')
                     ElevatedButton(
                       onPressed: () {
                         Navigator.push(
