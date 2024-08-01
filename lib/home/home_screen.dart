@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,7 @@ import '../login/login_screen.dart';
 import '../admin/admin_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../login/users_provider.dart';
+import '../login/change_password.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,14 +19,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
-    usuarioProvider.fetchUserData();
+    final usuarioProvider =
+        Provider.of<UsuarioProvider>(context, listen: false);
+    usuarioProvider.fetchUserData().then((_) {
+      if (usuarioProvider.userData != null &&
+          usuarioProvider.userData!['isFirstLogin'] == true) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ChangePassword()),
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final usuarioProvider = Provider.of<UsuarioProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -56,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Text('Nombre: ${usuarioProvider.userData!['firstName']}'),
                   Text('Apellido: ${usuarioProvider.userData!['lastName']}'),
-                  // Display other user data as needed
                   Text('Rol: ${usuarioProvider.userData!['role']}'),
                   if (usuarioProvider.userData!['role'] == 'admin')
                     ElevatedButton(

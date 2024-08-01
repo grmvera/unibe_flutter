@@ -82,6 +82,7 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
           'idNumber': _idNumberController.text,
           'career': _careerController.text,
           'role': role,
+          'isFirstLogin' : true,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(

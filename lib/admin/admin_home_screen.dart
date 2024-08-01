@@ -138,6 +138,7 @@ Future<void> uploadExcel(BuildContext context) async {
                     'idNumber': idNumber.toString(),
                     'career': career.toString(),
                     'role': role.toString(),
+                    'isFirstLogin': true,
                   });
                 }
               } catch (e) {
