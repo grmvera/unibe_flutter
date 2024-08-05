@@ -15,6 +15,9 @@ class _UserDisabledTableState extends State<UserDisabledTable> {
       .where('status', isEqualTo: false)
       .snapshots();
 
+  int _currentPage = 0;
+  int _itemsPerPage = 5;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -23,47 +26,81 @@ class _UserDisabledTableState extends State<UserDisabledTable> {
         if (snapshot.hasError) {
           return const Text('Something went wrong');
         }
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
-        return DataTable(
-          columns: const [
-            DataColumn(label: Text('Nombre')),
-            DataColumn(label: Text('Cedula')),
-            DataColumn(label: Text('Correo')),
-            DataColumn(label: Text('Aciones')),
-          ],
-          rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-            Map<String, dynamic> data =
-                document.data()! as Map<String, dynamic>;
-            return DataRow(
-              cells: [
-                DataCell(Text(data['firstName'] ?? '')),
-                DataCell(Text(data['idNumber'] ?? '')),
-                DataCell(Text(data['email'] ?? '')),
-                DataCell(
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.save_alt),
-                        onPressed: () {
-                          _activeUser(document.id);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_forever),
-                        onPressed: () {
-                          _deleteUser(document.id);
-                        },
-                      ),
-                    ],
-                  ),
+        var filteredDocs = snapshot.data!.docs;
+        int startIndex = _currentPage * _itemsPerPage;
+        int endIndex = startIndex + _itemsPerPage;
+        if (endIndex > filteredDocs.length) {
+          endIndex = filteredDocs.length;
+        }
+        var pageDocs = filteredDocs.sublist(startIndex, endIndex);
+        return Column(
+          children: [
+            SingleChildScrollView(
+              // Aquí añadimos el SingleChildScrollView
+              scrollDirection: Axis.horizontal, //  y especificamos la dirección
+              child: SizedBox(
+                height: 300,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Nombre')),
+                    DataColumn(label: Text('Cedula')),
+                    DataColumn(label: Text('Correo')),
+                    DataColumn(label: Text('Aciones')),
+                  ],
+                  rows: pageDocs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data =
+                        document.data()! as Map<String, dynamic>;
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(data['firstName'] ?? '')),
+                        DataCell(Text(data['idNumber'] ?? '')),
+                        DataCell(Text(data['email'] ?? '')),
+                        DataCell(
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.disabled_by_default),
+                                onPressed: () {
+                                  _activeUser(document.id);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.remove_red_eye),
+                                onPressed: () {
+                                  _deleteUser(document.id);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _currentPage > 0
+                      ? () => setState(() => _currentPage--)
+                      : null,
+                ),
+                Text('Página ${_currentPage + 1}'),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: endIndex < filteredDocs.length
+                      ? () => setState(() => _currentPage++)
+                      : null,
                 ),
               ],
-            );
-          }).toList(),
+            ),
+          ],
         );
       },
     );

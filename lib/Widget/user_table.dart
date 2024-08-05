@@ -14,6 +14,9 @@ class _UserTableState extends State<UserTable> {
       .where('status', isEqualTo: true)
       .snapshots();
 
+  int _currentPage = 0;
+  int _itemsPerPage = 5;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -25,19 +28,28 @@ class _UserTableState extends State<UserTable> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        return SingleChildScrollView(
-          child: SizedBox(
-            // Agrega un SizedBox con un alto fijo
-            height: 300, // Ajusta el alto según tus necesidades
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Nombre')),
-                DataColumn(label: Text('Cedula')),
-                DataColumn(label: Text('Correo')),
-                DataColumn(label: Text('Aciones')),
-              ],
-              rows: snapshot.data!.docs
-                  .map((DocumentSnapshot document) {
+        var filteredDocs = snapshot.data!.docs;
+        int startIndex = _currentPage * _itemsPerPage;
+        int endIndex = startIndex + _itemsPerPage;
+        if (endIndex > filteredDocs.length) {
+          endIndex = filteredDocs.length;
+        }
+        var pageDocs = filteredDocs.sublist(startIndex, endIndex);
+        return Column(
+          children: [
+            SingleChildScrollView(
+              // Aquí añadimos el SingleChildScrollView
+              scrollDirection: Axis.horizontal, //  y especificamos la dirección
+              child: SizedBox(
+                height: 300,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Nombre')),
+                    DataColumn(label: Text('Cedula')),
+                    DataColumn(label: Text('Correo')),
+                    DataColumn(label: Text('Aciones')),
+                  ],
+                  rows: pageDocs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data =
                         document.data()! as Map<String, dynamic>;
                     return DataRow(
@@ -65,11 +77,29 @@ class _UserTableState extends State<UserTable> {
                         ),
                       ],
                     );
-                  })
-                  .take(5)
-                  .toList(), // Limita la vista a 5 filas
+                  }).toList(),
+                ),
+              ),
             ),
-          ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _currentPage > 0
+                      ? () => setState(() => _currentPage--)
+                      : null,
+                ),
+                Text('Página ${_currentPage + 1}'),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: endIndex < filteredDocs.length
+                      ? () => setState(() => _currentPage++)
+                      : null,
+                ),
+              ],
+            ),
+          ],
         );
       },
     );

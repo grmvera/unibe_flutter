@@ -39,31 +39,31 @@ class AdminHomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Página Administrativa',
-              style: TextStyle(fontSize: 24),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ManageAccountsScreen(),
-                  ),
-                );
-              },
-              child: const Text('Gestionar Cuentas'),
-            ),
-            ElevatedButton(
-              onPressed: () => uploadExcel(context),
-              child: const Text('Cargar Excel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _showDisabledUsersDialog(context); 
-              },
-              child: const Text('Usuarios Inabilitados'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ManageAccountsScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Gestionar Cuentas'),
+              ),
+              ElevatedButton(
+                onPressed: () => uploadExcel(context),
+                child: const Text('Cargar Excel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _showDisabledUsersDialog(context);
+                },
+                child: const Text('Usuarios Inabilitados'),
+              ),
+              ]
             ),
             const SizedBox(height: 20),
             const UserTable(),
@@ -81,12 +81,12 @@ class AdminHomeScreen extends StatelessWidget {
           title: const Text('Usuarios Desactivados'),
           content: const SingleChildScrollView(
             child:
-                UserDisabledTable(), // Mostrar la tabla en el contenido del diálogo
+                UserDisabledTable(),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
+                Navigator.of(context).pop();
               },
               child: const Text('Cerrar'),
             ),
