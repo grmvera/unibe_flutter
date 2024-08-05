@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../login/users_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 
 class ManageAccountsScreen extends StatefulWidget {
   const ManageAccountsScreen({super.key});
@@ -66,7 +68,8 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
 
     // Si se cumplen todas las condiciones, proceder con el registro
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -82,8 +85,15 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
           'idNumber': _idNumberController.text,
           'career': _careerController.text,
           'role': role,
-          'isFirstLogin' : true,
+          'isFirstLogin': true,
+          'status': true,
         });
+        await sendWelcomeEmail(
+            _emailController.text, _firstNameController.text);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registro Satisfactorio')),
+        );
+        Navigator.pop(context);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registro Satisfactorio')),
@@ -94,6 +104,23 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
       setState(() {
         _errorMessage = e.toString();
       });
+    }
+  }
+
+  Future<void> sendWelcomeEmail(String email, String name) async {
+    final smtpServer = gmail('grm.vera@yavirac.edu.ec', 'Geovanny18Vera19');
+    // Reemplaza con tus credenciales de Gmail u otro servidor SMTP
+    final message = Message()
+      ..from = const Address('grm.vera@yavirac.edu.ec', 'Rodolfo')
+      ..recipients.add(email)
+      ..subject = '¡Bienvenido a Unibe Control de Acceso!'
+      ..text =
+          'Hola $name,\n\n¡Nos complace darte la bienvenida a [Nombre de tu aplicación]!\n\nTu correo electrónico registrado es: $email\n\nPuedes iniciar sesión en [Enlace a tu aplicación] para comenzar a disfrutar de todas las funciones.\n\n¡Recuerda que la clave es tu numero de cedula\n\nAtentamente,\nEl equipo de Unibe';
+    try {
+      final sendReport = await send(message, smtpServer);
+      print('Mensaje enviado: ${sendReport.toString()}');
+    } on MailerException catch (e) {
+      print('Error al enviar el correo electrónico: ${e.toString()}');
     }
   }
 
@@ -110,8 +137,6 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // Mostrar el rol del usuario actual
-            Text('Rol actual: ${usuarioProvider.userData?['role'] ?? 'N/A'}'),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Correo'),
@@ -163,12 +188,6 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
               style: const TextStyle(color: Colors.red),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Regresar'),
-            ),
           ],
         ),
       ),

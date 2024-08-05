@@ -9,6 +9,8 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'manage_accounts_screen.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
+import '../Widget/user_table.dart';
+import '../Widget/user_disabled_table.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -29,7 +31,6 @@ class AdminHomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
                 (route) => false,
               );
-              debugPrint('yo estube aqui debug');
             },
           ),
         ],
@@ -51,7 +52,6 @@ class AdminHomeScreen extends StatelessWidget {
                     builder: (context) => const ManageAccountsScreen(),
                   ),
                 );
-                print('me voy a gestion');
               },
               child: const Text('Gestionar Cuentas'),
             ),
@@ -59,9 +59,40 @@ class AdminHomeScreen extends StatelessWidget {
               onPressed: () => uploadExcel(context),
               child: const Text('Cargar Excel'),
             ),
+            ElevatedButton(
+              onPressed: () {
+                _showDisabledUsersDialog(context); 
+              },
+              child: const Text('Usuarios Inabilitados'),
+            ),
+            const SizedBox(height: 20),
+            const UserTable(),
           ],
         ),
       ),
+    );
+  }
+
+  void _showDisabledUsersDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Usuarios Desactivados'),
+          content: const SingleChildScrollView(
+            child:
+                UserDisabledTable(), // Mostrar la tabla en el contenido del diálogo
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -109,7 +140,6 @@ Future<void> uploadExcel(BuildContext context) async {
             var role = row[5]?.value;
             var password = idNumber;
 
-
             if (email != null &&
                 password != null &&
                 firstName != null &&
@@ -139,6 +169,7 @@ Future<void> uploadExcel(BuildContext context) async {
                     'career': career.toString(),
                     'role': role.toString(),
                     'isFirstLogin': true,
+                    'status': true,
                   });
                 }
               } catch (e) {
