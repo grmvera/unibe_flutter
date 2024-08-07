@@ -5,19 +5,22 @@ import '../login/users_provider.dart';
 import '../login/login_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'manage_accounts_screen.dart';
-import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import '../Widget/user_table.dart';
 import '../Widget/user_disabled_table.dart';
 
-class AdminHomeScreen extends StatelessWidget {
+class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
+  @override
+  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+}
+
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final usuarioProvider = Provider.of<UsuarioProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('administracion de usuarios'),
@@ -39,10 +42,8 @@ class AdminHomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -63,10 +64,21 @@ class AdminHomeScreen extends StatelessWidget {
                 },
                 child: const Text('Usuarios Inabilitados'),
               ),
-              ]
+            ]),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Buscar por ID',
+                ),
+                onChanged: (value) {
+                  setState(() {}); // Call setState here
+                },
+              ),
             ),
             const SizedBox(height: 20),
-            const UserTable(),
+            UserTable(searchController: _searchController),
           ],
         ),
       ),
@@ -80,8 +92,7 @@ class AdminHomeScreen extends StatelessWidget {
         return AlertDialog(
           title: const Text('Usuarios Desactivados'),
           content: const SingleChildScrollView(
-            child:
-                UserDisabledTable(),
+            child: UserDisabledTable(),
           ),
           actions: [
             TextButton(
@@ -102,9 +113,8 @@ Future<void> uploadExcel(BuildContext context) async {
     type: FileType.custom,
     allowedExtensions: ['xlsx'],
   );
-  print(result);
 
-  if (result != null && result.files != null && result.files.isNotEmpty) {
+  if (result != null && result.files.isNotEmpty) {
     var bytes = result.files.single.bytes;
     if (bytes != null) {
       var excel = Excel.decodeBytes(bytes);
@@ -126,9 +136,6 @@ Future<void> uploadExcel(BuildContext context) async {
         ),
       );
       try {
-        // ... procesar el archivo Excel ...
-        print(excel.tables.keys);
-
         for (var table in excel.tables.keys) {
           List<List<Data?>> rows = excel.tables[table]!.rows;
           for (var row in rows.skip(1)) {
@@ -137,8 +144,16 @@ Future<void> uploadExcel(BuildContext context) async {
             var lastName = row[2]?.value;
             var idNumber = row[3]?.value;
             var career = row[4]?.value;
-            var role = row[5]?.value;
+            var role = row[5]?.value;          
+            var semestre = row[6]?.value;
+            var credyTipe = row[7]?.value;
+            var shareNumber = row[8]?.value;
             var password = idNumber;
+            var informationInput = DateTime.now();
+            var informationOutput = '';
+            var created = Provider.of<UsuarioProvider>(context, listen: false);
+            var update = '';
+            var delete = '';
 
             if (email != null &&
                 password != null &&
@@ -146,8 +161,10 @@ Future<void> uploadExcel(BuildContext context) async {
                 lastName != null &&
                 idNumber != null &&
                 career != null &&
-                role != null) {
-              print('Creando usuario con email: $email');
+                role != null &&
+                semestre != null &&
+                credyTipe != null &&
+                shareNumber != null) {
               try {
                 UserCredential userCredential =
                     await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -168,8 +185,16 @@ Future<void> uploadExcel(BuildContext context) async {
                     'idNumber': idNumber.toString(),
                     'career': career.toString(),
                     'role': role.toString(),
+                    'semestre': semestre.toString(),
+                    'credy_tipe': credyTipe.toString(),
+                    'share_number': shareNumber.toString(),
+                    'information_input': informationInput,
+                    'information_output': informationOutput,
                     'isFirstLogin': true,
                     'status': true,
+                    'created': created.userData!['firstName'].toString(),
+                    'update': update,
+                    'delete': delete,
                   });
                 }
               } catch (e) {

@@ -1,12 +1,13 @@
-import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../login/login_screen.dart';
 import '../admin/admin_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../login/users_provider.dart';
 import '../login/change_password.dart';
+import '../Widget/qr_studen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -68,6 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('Nombre: ${usuarioProvider.userData!['firstName']}'),
                   Text('Apellido: ${usuarioProvider.userData!['lastName']}'),
                   Text('Rol: ${usuarioProvider.userData!['role']}'),
+                  
+                  if (usuarioProvider.userData!['role'] == 'student')
+                    QrCodeWidget(studentEmail: usuarioProvider.userData!['email'], studentId: usuarioProvider.userData!['idNumber'], studentName: usuarioProvider.userData!['firstName']),
+                  const SizedBox(height: 20),
+
+                  
                   if (usuarioProvider.userData!['role'] == 'admin')
                     ElevatedButton(
                       onPressed: () {

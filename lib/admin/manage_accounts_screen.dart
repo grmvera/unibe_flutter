@@ -17,11 +17,13 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
   final _auth = FirebaseAuth.instance;
   final _emailController = TextEditingController();
   final _firstNameController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _idNumberController = TextEditingController();
   final _careerController = TextEditingController();
-  String role = 'student'; // Valor inicial
+  String role = 'student';
+  String semestre = 'Primero';
+  String credyTipe = 'Contado';
+  String shareNumber = '1';
   String _errorMessage = '';
 
   bool _isValidEmail(String email) {
@@ -49,44 +51,44 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
       return;
     }
 
-    if (_passwordController.text.length < 8) {
-      setState(() {
-        _errorMessage = 'La contraseña debe tener al menos 8 caracteres';
-      });
-      return;
-    }
-
     if (_firstNameController.text.isEmpty ||
         _lastNameController.text.isEmpty ||
         _idNumberController.text.isEmpty ||
-        _careerController.text.isEmpty) {
+        _careerController.text.isEmpty ||
+        semestre.isEmpty ||
+        credyTipe.isEmpty ||
+        shareNumber.isEmpty ||
+        role.isEmpty) {
       setState(() {
         _errorMessage = 'Por favor completa todos los campos';
       });
       return;
     }
-
-    // Si se cumplen todas las condiciones, proceder con el registro
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
-        password: _passwordController.text,
+        password: _idNumberController.text,
       );
-
       User? user = userCredential.user;
-
       if (user != null) {
-        // Guardar datos adicionales en Firestore
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'email': _emailController.text,
           'firstName': _firstNameController.text,
           'lastName': _lastNameController.text,
           'idNumber': _idNumberController.text,
-          'career': _careerController.text,
+          'career': _careerController.text,         
+          'semestre': semestre,
+          'credy_tipe': credyTipe,
+          'share_number': shareNumber,
           'role': role,
           'isFirstLogin': true,
           'status': true,
+          'information_input': DateTime.now(),
+          'information_output': '',
+          'created': usuarioProvider.userData!['firstName'].toString(),
+          'update':'',
+          'delete':'',
         });
         await sendWelcomeEmail(
             _emailController.text, _firstNameController.text);
@@ -126,69 +128,129 @@ class _ManageAccountsScreen extends State<ManageAccountsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final usuarioProvider = Provider.of<UsuarioProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registro de Cuenta'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Correo'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
-            ),
-            TextField(
-              controller: _firstNameController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-            ),
-            TextField(
-              controller: _lastNameController,
-              decoration: const InputDecoration(labelText: 'Apellido'),
-            ),
-            TextField(
-              controller: _idNumberController,
-              decoration: const InputDecoration(labelText: 'Número de Cédula'),
-            ),
-            TextField(
-              controller: _careerController,
-              decoration: const InputDecoration(labelText: 'Carrera'),
-            ),
-            DropdownButton<String>(
-              value: role,
-              onChanged: (String? newValue) {
-                setState(() {
-                  role = newValue!;
-                });
-              },
-              items: <String>['admin', 'student']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _register,
-              child: const Text('Crear Usuario'),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              _errorMessage,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 20),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Correo'),
+              ),
+              TextField(
+                controller: _firstNameController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              TextField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(labelText: 'Apellido'),
+              ),
+              TextField(
+                controller: _idNumberController,
+                decoration:
+                    const InputDecoration(labelText: 'Número de Cédula'),
+              ),
+              TextField(
+                controller: _careerController,
+                decoration: const InputDecoration(labelText: 'Carrera'),
+              ),
+              Row(
+                children: [
+                  DropdownButton<String>(
+                    value: semestre,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        semestre = newValue!;
+                      });
+                    },
+                    items: <String>[
+                      'Primero',
+                      'Segundo',
+                      'Tercero',
+                      'Cuarto',
+                      'Quinto',
+                      'Sexto',
+                      'Séptimo',
+                      'Octavo',
+                      'Noveno'
+                    ].map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                  DropdownButton<String>(
+                    value: credyTipe,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        credyTipe = newValue!;
+                      });
+                    },
+                    items: <String>['Contado', 'Credito']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                  if (credyTipe == 'Credito')
+                    DropdownButton<String>(
+                      value: shareNumber,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          shareNumber = newValue!;
+                        });
+                      },
+                      items: <String>[
+                        '1',
+                        '2',
+                        '3',
+                        '4'
+                      ] // Puedes agregar más opciones
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                ],
+              ),
+              DropdownButton<String>(
+                value: role,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    role = newValue!;
+                  });
+                },
+                items: <String>['admin', 'student']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _register,
+                child: const Text('Crear Usuario'),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                _errorMessage,
+                style: const TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

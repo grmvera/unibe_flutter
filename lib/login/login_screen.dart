@@ -30,8 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
           .get();
       if (userDoc.exists && userDoc['status'] == true) {
         Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          context, MaterialPageRoute(builder: (context) => const HomeScreen()),
           (route) => false,
         );
       } else {

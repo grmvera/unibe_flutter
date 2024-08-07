@@ -2,7 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class UserTable extends StatefulWidget {
-  const UserTable({Key? key}) : super(key: key);
+  final TextEditingController searchController;
+  
+  const UserTable({
+    Key? key,
+    required this.searchController,
+    
+  }) : super(key: key);
 
   @override
   State<UserTable> createState() => _UserTableState();

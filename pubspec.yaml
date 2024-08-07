@@ -21,12 +21,7 @@ version: 1.0.0+1
 environment:
   sdk: '>=3.4.3 <4.0.0'
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
@@ -36,9 +31,8 @@ dependencies:
   excel: ^2.0.6
   file_picker: ^5.0.1
   flutter_progress_hud: ^2.0.2
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  qr_flutter: ^4.0.0
+  
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
   mailer: ^6.1.2
