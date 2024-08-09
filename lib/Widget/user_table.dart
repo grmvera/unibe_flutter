@@ -44,7 +44,6 @@ class _UserTableState extends State<UserTable> {
         return Column(
           children: [
             SingleChildScrollView(
-              // Aquí añadimos el SingleChildScrollView
               scrollDirection: Axis.horizontal, //  y especificamos la dirección
               child: SizedBox(
                 height: 300,
@@ -137,7 +136,6 @@ class _UserTableState extends State<UserTable> {
 
   void _showUpdateUserDialog(BuildContext context, DocumentSnapshot document) {
     Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-    // Controladores para los campos del formulario
     final firstNameController =
         TextEditingController(text: data['firstName'] ?? '');
     final emailController = TextEditingController(text: data['email'] ?? '');

@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'manage_accounts_screen.dart';
 import '../Widget/user_table.dart';
 import '../Widget/user_disabled_table.dart';
+import '../admin/manage_accounts.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -48,7 +49,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ManageAccountsScreen(),
+                      builder: (context) => const ManageAccounts(),
                     ),
                   );
                 },
@@ -73,7 +74,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   hintText: 'Buscar por ID',
                 ),
                 onChanged: (value) {
-                  setState(() {}); // Call setState here
+                  setState(() {});
                 },
               ),
             ),
@@ -118,7 +119,6 @@ Future<void> uploadExcel(BuildContext context) async {
     var bytes = result.files.single.bytes;
     if (bytes != null) {
       var excel = Excel.decodeBytes(bytes);
-      // Mostrar AlertDialog con mensaje de "Subiendo archivo..."
       String fileName = result.files.single.name;
       showDialog(
         context: context,
@@ -144,7 +144,7 @@ Future<void> uploadExcel(BuildContext context) async {
             var lastName = row[2]?.value;
             var idNumber = row[3]?.value;
             var career = row[4]?.value;
-            var role = row[5]?.value;          
+            var role = row[5]?.value;
             var semestre = row[6]?.value;
             var credyTipe = row[7]?.value;
             var shareNumber = row[8]?.value;
