@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'manage_accounts_screen.dart';
 import '../Widget/user_table.dart';
 import '../Widget/user_disabled_table.dart';
+import '../Widget/user_student.dart';
 import '../admin/manage_accounts.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -16,6 +17,8 @@ class AdminHomeScreen extends StatefulWidget {
   @override
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
+
+bool light = true;
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
@@ -78,8 +81,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 },
               ),
             ),
+            Switch.adaptive(
+              value: light,
+              onChanged: (bool value) {
+                setState(() {
+                  light = value;
+                });
+              },
+            ),
             const SizedBox(height: 20),
-            UserTable(searchController: _searchController),
+            if (light == true) 
+              UserTable(searchController: _searchController)
+            else 
+              (const UserStudent())
           ],
         ),
       ),

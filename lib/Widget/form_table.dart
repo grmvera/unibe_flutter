@@ -158,8 +158,8 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
     labelController.dispose();
     tipeEntryController.dispose();
     for (var controller in optionControllers) {
-       controller.dispose();
-     }
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -177,29 +177,32 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
             ),
             TextField(
               controller: tipeEntryController,
-              decoration: const InputDecoration(labelText: 'Tipo de Entrada'),
-              onChanged: (value) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'Tipo de Entrada',
+              ),
+              enabled: false,
             ),
             if (tipeEntryController.text == 'dropdown')
-               Column(
-                 children: [
-                   ...optionControllers.map((controller) => 
-                     TextField(
-                       controller: controller,
-                       decoration: const InputDecoration(labelText: 'Opción'),
-                       onChanged: (value) => setState(() {}),
-                     )
-                   ).toList(),
-                   ElevatedButton(
-                     onPressed: () {
-                       setState(() {
-                         optionControllers.add(TextEditingController());
-                       });
-                     },
-                     child: const Text('Agregar Opción'),
-                   ),
-                 ],
-               ),
+              Column(
+                children: [
+                  ...optionControllers
+                      .map((controller) => TextField(
+                            controller: controller,
+                            decoration:
+                                const InputDecoration(labelText: 'Opción'),
+                            onChanged: (value) => setState(() {}),
+                          ))
+                      .toList(),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        optionControllers.add(TextEditingController());
+                      });
+                    },
+                    child: const Text('Agregar Opción'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -236,25 +239,25 @@ void _showSnackBar(BuildContext context, String message) {
 }
 
 Future<void> _updateForm(
-   String formId,
-   String label,
-   String tipeEntry,
-   List<String> options, // Cambia el tipo a List<String>
-   Function(String) showSnackBar,
- ) async {
-   try {
-     await FirebaseFirestore.instance
-         .collection('form_settings')
-         .doc(formId)
-         .update({
-       'label': label,
-       'tipe_entry': tipeEntry,
-       'options': options, // Guarda la lista de opciones
-       'information_output': DateTime.now(),
-       'update': 'rodolfo'
-     });
-     showSnackBar('Campo actualizado con éxito');
-   } catch (e) {
-     showSnackBar('Error al actualizar el campo');
-   }
- }
+  String formId,
+  String label,
+  String tipeEntry,
+  List<String> options, // Cambia el tipo a List<String>
+  Function(String) showSnackBar,
+) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('form_settings')
+        .doc(formId)
+        .update({
+      'label': label,
+      'tipe_entry': tipeEntry,
+      'options': options, // Guarda la lista de opciones
+      'information_output': DateTime.now(),
+      'update': 'rodolfo'
+    });
+    showSnackBar('Campo actualizado con éxito');
+  } catch (e) {
+    showSnackBar('Error al actualizar el campo');
+  }
+}
