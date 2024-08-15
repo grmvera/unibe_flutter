@@ -46,6 +46,7 @@ class _FormDisabledTableState extends State<FormDisabledTable> {
                   columns: const [
                     DataColumn(label: Text('Etiqueta')),
                     DataColumn(label: Text('Tipo de Entrada')),
+                    DataColumn(label: Text('Tipo Objeto')),
                     DataColumn(label: Text('Acciones')),
                   ],
                   rows: pageDocs.map((DocumentSnapshot document) {
@@ -54,6 +55,7 @@ class _FormDisabledTableState extends State<FormDisabledTable> {
                     return DataRow(cells: [
                       DataCell(Text(data['label'] ?? '')),
                       DataCell(Text(data['tipe_entry'] ?? '')),
+                      DataCell(Text(data['target_type'] ?? '')),
                       DataCell(Row(
                         children: [
                           IconButton(

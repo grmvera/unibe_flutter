@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:unibe_app_control/Widget/botton_navigaton_bart.dart';
 import '../login/users_provider.dart';
 import '../login/login_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'manage_accounts_screen.dart';
 import '../Widget/user_table.dart';
 import '../Widget/user_disabled_table.dart';
 import '../Widget/user_student.dart';
+import '../home/home_screen.dart';
 import '../admin/manage_accounts.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -18,16 +19,15 @@ class AdminHomeScreen extends StatefulWidget {
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
 
-bool light = true;
-
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  bool light = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('administracion de usuarios'),
+        title: const Text('Administración de usuarios'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -42,33 +42,30 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
         ],
       ),
-      body: Center(
+      body: SingleChildScrollView(
+        // Se añade el SingleChildScrollView
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageAccounts(),
-                    ),
-                  );
-                },
-                child: const Text('Gestionar Cuentas'),
-              ),
-              ElevatedButton(
-                onPressed: () => uploadExcel(context),
-                child: const Text('Cargar Excel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _showDisabledUsersDialog(context);
-                },
-                child: const Text('Usuarios Inabilitados'),
-              ),
-            ]),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    _showCreatedUsersDialog(context);
+                  },
+                  child: const Text('Crear Usuario'),
+                ),
+                ElevatedButton(
+                  onPressed: () => uploadExcel(context),
+                  child: const Text('Cargar Excel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _showDisabledUsersDialog(context);
+                  },
+                  child: const Text('Usuarios Inabilitados'),
+                ),
+              ],
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
@@ -90,13 +87,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               },
             ),
             const SizedBox(height: 20),
-            if (light == true) 
+            if (light)
               UserTable(searchController: _searchController)
-            else 
-              (const UserStudent())
+            else
+              const UserStudent(),
           ],
         ),
       ),
+      bottomNavigationBar: const BottonNavigatonBart(),
     );
   }
 
@@ -115,6 +113,45 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Navigator.of(context).pop();
               },
               child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCreatedUsersDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Tipo de Usuario'),
+          content: const Text('¿Qué tipo de usuario deseas crear?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Estudiante'),
+              onPressed: () {
+                // Navegar a la pantalla de creación de estudiante
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ManageAccountsStudent(),
+                  ),
+                );
+              },
+            ),
+            TextButton(
+              child: const Text('Administrador'),
+              onPressed: () {
+                // Navegar a la pantalla de creación de administrador
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const ManageAccountsStudent(), // Reemplaza con la pantalla correcta
+                  ),
+                );
+              },
             ),
           ],
         );

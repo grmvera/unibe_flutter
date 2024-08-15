@@ -6,21 +6,23 @@ import 'package:provider/provider.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import '../admin/form_settings.dart';
+import '../home/home_screen.dart';
+import '../admin/admin_home_screen.dart';
 import 'package:date_picker_plus/date_picker_plus.dart';
 
-class ManageAccounts extends StatefulWidget {
-  const ManageAccounts({super.key});
+class ManageAccountsStudent extends StatefulWidget {
+  const ManageAccountsStudent({super.key});
 
   @override
-  _ManageAccounts createState() => _ManageAccounts();
+  _ManageAccountsStudent createState() => _ManageAccountsStudent();
 }
 
-class _ManageAccounts extends State<ManageAccounts> {
+class _ManageAccountsStudent extends State<ManageAccountsStudent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registro de Cuenta'),
+        title: const Text('Registro de Cuenta para Estudiantes'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -91,19 +93,6 @@ class _ManageAccounts extends State<ManageAccounts> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: 400,
-                      height: 400,
-                      child: RangeDatePicker(
-                        centerLeadingDate: true,
-                        minDate: DateTime(2020, 10, 10),
-                        maxDate: DateTime(2024, 10, 30),
-                        onRangeSelected: (value) {
-                          // Handle selected range
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => crearUsuario(
                           context), // Envuelve la llamada en una función anónima
@@ -120,6 +109,32 @@ class _ManageAccounts extends State<ManageAccounts> {
             }
           },
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.business),
+            label: 'Administración',
+          ),
+        ],
+        selectedItemColor: const Color.fromARGB(255, 0, 4, 255),
+        onTap: (int index) {
+          if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
+            );
+          }
+        },
       ),
     );
   }

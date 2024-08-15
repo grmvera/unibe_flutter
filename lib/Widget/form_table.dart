@@ -46,6 +46,7 @@ class _FormTableState extends State<FormTable> {
                   columns: const [
                     DataColumn(label: Text('Etiqueta')),
                     DataColumn(label: Text('Tipo de Entrada')),
+                    DataColumn(label: Text('Tipo Objeto')),
                     DataColumn(label: Text('Acciones')),
                   ],
                   rows: pageDocs.map((DocumentSnapshot document) {
@@ -54,6 +55,7 @@ class _FormTableState extends State<FormTable> {
                     return DataRow(cells: [
                       DataCell(Text(data['label'] ?? '')),
                       DataCell(Text(data['tipe_entry'] ?? '')),
+                      DataCell(Text(data['target_type'] ?? '')),
                       DataCell(Row(
                         children: [
                           IconButton(
@@ -138,6 +140,7 @@ class _UpdateFormDialog extends StatefulWidget {
 
 class _UpdateFormDialogState extends State<_UpdateFormDialog> {
   late TextEditingController labelController;
+  late TextEditingController labelTipeController;
   late TextEditingController tipeEntryController;
   List<TextEditingController> optionControllers = [TextEditingController()];
   @override
@@ -146,6 +149,7 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
     Map<String, dynamic> data = widget.document.data()! as Map<String, dynamic>;
     labelController = TextEditingController(text: data['label'] ?? '');
     tipeEntryController = TextEditingController(text: data['tipe_entry'] ?? '');
+    labelTipeController = TextEditingController(text: data['target_type'] ?? '');
     if (data['options'] != null) {
       optionControllers = (data['options'] as List)
           .map((option) => TextEditingController(text: option))
@@ -157,6 +161,7 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
   void dispose() {
     labelController.dispose();
     tipeEntryController.dispose();
+    labelTipeController.dispose();
     for (var controller in optionControllers) {
       controller.dispose();
     }
@@ -176,12 +181,18 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
               onChanged: (value) => setState(() {}),
             ),
             TextField(
+              controller: labelTipeController,
+              decoration: const InputDecoration(labelText: 'Tipo de Objeto'),
+              onChanged: (value) => setState(() {}),
+            ),
+            TextField(
               controller: tipeEntryController,
               decoration: const InputDecoration(
                 labelText: 'Tipo de Entrada',
               ),
               enabled: false,
             ),
+            
             if (tipeEntryController.text == 'dropdown')
               Column(
                 children: [
