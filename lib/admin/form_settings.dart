@@ -60,7 +60,7 @@ class _FromSettingsState extends State<FromSettings> {
   }
 
   final List<String> fieldTypes = ['texto', 'dropdown'];
-  final List<String> targetTypes = ['estudiante', 'administrador'];
+  final List<String> targetTypes = ['Estudiante', 'Administrador', 'Todos'];
 
   String? selectedFieldType;
   String? selectedTargetType;

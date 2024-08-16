@@ -195,7 +195,7 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
                   targetType = newValue!;
                 });
               },
-              items: <String>['estudiante', 'administrador']
+              items: <String>['Estudiante', 'Administrador', 'Todos']
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -229,6 +229,7 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
                         controller: controller,
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.all(16),
+                          label: const Text('Nombre de la opcion'),
                           hintText: 'Nombre de la opcion',
                           hintStyle: const TextStyle(fontSize: 14),
                           border: OutlineInputBorder(
