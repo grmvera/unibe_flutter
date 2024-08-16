@@ -108,7 +108,7 @@ class _FormTableState extends State<FormTable> {
           .doc(formId)
           .update({'status': false});
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Desactivado con Exito')),
+        const SnackBar(content: Text('Desactivado con Éxito')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -140,16 +140,17 @@ class _UpdateFormDialog extends StatefulWidget {
 
 class _UpdateFormDialogState extends State<_UpdateFormDialog> {
   late TextEditingController labelController;
-  late TextEditingController labelTipeController;
   late TextEditingController tipeEntryController;
+  late String targetType;
   List<TextEditingController> optionControllers = [TextEditingController()];
+
   @override
   void initState() {
     super.initState();
     Map<String, dynamic> data = widget.document.data()! as Map<String, dynamic>;
     labelController = TextEditingController(text: data['label'] ?? '');
     tipeEntryController = TextEditingController(text: data['tipe_entry'] ?? '');
-    labelTipeController = TextEditingController(text: data['target_type'] ?? '');
+    targetType = data['target_type'] ?? 'estudiante';
     if (data['options'] != null) {
       optionControllers = (data['options'] as List)
           .map((option) => TextEditingController(text: option))
@@ -161,7 +162,6 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
   void dispose() {
     labelController.dispose();
     tipeEntryController.dispose();
-    labelTipeController.dispose();
     for (var controller in optionControllers) {
       controller.dispose();
     }
@@ -180,10 +180,24 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
               decoration: const InputDecoration(labelText: 'Etiqueta'),
               onChanged: (value) => setState(() {}),
             ),
-            TextField(
-              controller: labelTipeController,
-              decoration: const InputDecoration(labelText: 'Tipo de Objeto'),
-              onChanged: (value) => setState(() {}),
+            DropdownButtonFormField<String>(
+              value: targetType,
+              onChanged: (String? newValue) {
+                setState(() {
+                  targetType = newValue!;
+                });
+              },
+              items: <String>['estudiante', 'administrador']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              decoration: const InputDecoration(
+                labelText: 'Tipo Objeto',
+                border: OutlineInputBorder(),
+              ),
             ),
             TextField(
               controller: tipeEntryController,
@@ -192,7 +206,6 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
               ),
               enabled: false,
             ),
-            
             if (tipeEntryController.text == 'dropdown')
               Column(
                 children: [
@@ -230,8 +243,9 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
               widget.document.id,
               labelController.text,
               tipeEntryController.text,
+              targetType,
               optionControllers.map((e) => e.text).toList(),
-              widget.showSnackBar, // Pasamos la función showSnackBar
+              widget.showSnackBar,
             );
             Navigator.of(context).pop();
           },
@@ -243,7 +257,6 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
 }
 
 void _showSnackBar(BuildContext context, String message) {
-  // Agregamos el parámetro context
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(message)),
   );
@@ -253,7 +266,8 @@ Future<void> _updateForm(
   String formId,
   String label,
   String tipeEntry,
-  List<String> options, // Cambia el tipo a List<String>
+  String targetType,
+  List<String> options,
   Function(String) showSnackBar,
 ) async {
   try {
@@ -263,7 +277,8 @@ Future<void> _updateForm(
         .update({
       'label': label,
       'tipe_entry': tipeEntry,
-      'options': options, // Guarda la lista de opciones
+      'target_type': targetType,
+      'options': options,
       'information_output': DateTime.now(),
       'update': 'rodolfo'
     });
