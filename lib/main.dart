@@ -43,23 +43,65 @@ class InitialScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Unibe Identidad'),
+        title: const Text('UNIBE Identidad'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // Logo
+            Image.asset(
+              'assets/logo_unibe.png', // Asegúrate de que el logo esté en esta ruta
+              width: 150, // Ajusta el tamaño del logo
+            ),
+            const SizedBox(height: 50), // Espacio entre logo y botón
+            // Botón
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue, // Color del botón
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20), // Bordes redondeados
+                ),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 15, horizontal: 50), // Tamaño del botón
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const LoginScreen()), // Cambia a tu pantalla de inicio de sesión
                 );
               },
-              child: const Text('Iniciar Sesión'),
+              child: const Text(
+                'INGRESAR',
+                style: TextStyle(
+                  color: Colors.white, // Color del texto
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold, // Texto en negrita
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pantalla de Login'),
+      ),
+      body: const Center(
+        child: Text('Contenido de inicio de sesión'),
       ),
     );
   }
