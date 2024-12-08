@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:unibe_app_control/Widget/botton_navigaton_bart.dart';
 import '../Widget/form_table.dart';
 import '../Widget/form_disabled_table.dart';
+import 'package:toggle_switch/toggle_switch.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class FromSettings extends StatefulWidget {
   const FromSettings({super.key});
@@ -32,15 +34,22 @@ class _FromSettingsState extends State<FromSettings> {
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 _buildFieldNameInput(),
+                const SizedBox(height: 16),
+                _buildFieldTargetTypeDropdown(),
+                const SizedBox(height: 16),
                 _buildFieldTypeDropdown(),
-                _buildFieldTargetTypeDropdown(), // Nuevo dropdown para el tipo de usuario
+                const SizedBox(height: 16),
                 if (_fieldType == 'dropdown') _buildDropdownOptions(),
+                const SizedBox(height: 16),
                 _buildAddFieldButton(),
-                _buildFormToggleSwitch(),
-                if (light) const FormTable() else const FormDisabledTable(),
+                const SizedBox(height: 16),
+                _buildToggleSwitch(),
+                if (light == true)
+                  const FormTable()
+                else
+                  const FormDisabledTable(),
               ],
             ),
           ),
@@ -50,45 +59,109 @@ class _FromSettingsState extends State<FromSettings> {
     );
   }
 
-  Widget _buildFieldNameInput() {
-    return TextField(
-      controller: _fieldNameController,
-      decoration: const InputDecoration(labelText: 'Nombre del Campo'),
-    );
-  }
+  final List<String> fieldTypes = ['texto', 'dropdown'];
+  final List<String> targetTypes = ['Estudiante', 'Administrador', 'Todos'];
+
+  String? selectedFieldType;
+  String? selectedTargetType;
 
   Widget _buildFieldTypeDropdown() {
-    return DropdownButton<String>(
-      value: _fieldType,
+    return DropdownButtonFormField2<String>(
+      isExpanded: true,
+      value: selectedFieldType ?? fieldTypes[0],
       onChanged: (String? newValue) {
         setState(() {
-          _fieldType = newValue!;
+          selectedFieldType = newValue!;
+          _fieldType = newValue;
         });
       },
-      items: ['texto', 'dropdown'].map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
+      items: fieldTypes
+          .map((item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(
+                  item,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ))
+          .toList(),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      iconStyleData: const IconStyleData(
+        icon: Icon(
+          Icons.arrow_drop_down,
+          color: Colors.black45,
+        ),
+        iconSize: 24,
+      ),
+      dropdownStyleData: DropdownStyleData(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      menuItemStyleData: const MenuItemStyleData(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
     );
   }
 
   Widget _buildFieldTargetTypeDropdown() {
-    return DropdownButton<String>(
-      value: _fieldTargetType,
+    return DropdownButtonFormField2<String>(
+      isExpanded: true,
+      value: selectedTargetType ?? targetTypes[0],
       onChanged: (String? newValue) {
         setState(() {
-          _fieldTargetType = newValue!;
+          selectedTargetType = newValue!;
+          _fieldTargetType = newValue;
         });
       },
-      items: ['estudiante', 'administrador']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
+      items: targetTypes
+          .map((item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(
+                  item,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ))
+          .toList(),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      iconStyleData: const IconStyleData(
+        icon: Icon(
+          Icons.arrow_drop_down,
+          color: Colors.black45,
+        ),
+        iconSize: 24,
+      ),
+      dropdownStyleData: DropdownStyleData(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      menuItemStyleData: const MenuItemStyleData(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+    );
+  }
+
+  Widget _buildFieldNameInput() {
+    return TextFormField(
+      controller: _fieldNameController,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.all(16),
+        hintText: 'Nombre del campo',
+        hintStyle: const TextStyle(fontSize: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
     );
   }
 
@@ -98,32 +171,59 @@ class _FromSettingsState extends State<FromSettings> {
         ..._optionsControllers.map(
           (controller) => TextField(
             controller: controller,
-            decoration: const InputDecoration(labelText: 'Opción'),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.all(16),
+              hintText: 'Nombre de la opcion',
+              hintStyle: const TextStyle(fontSize: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
           ),
         ),
-        ElevatedButton(
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
           onPressed: _addDropdownOption,
-          child: const Text('Agregar Opción'),
+          icon: const Icon(Icons.exposure_plus_1),
+          label: const Text('Agregar Opcion'),
         ),
       ],
     );
   }
 
   Widget _buildAddFieldButton() {
-    return ElevatedButton(
+    return ElevatedButton.icon(
       onPressed: _createField,
-      child: const Text('Agregar Campo'),
+      icon: const Icon(Icons.save_alt),
+      label: const Text('Agregar'),
     );
   }
 
-  Widget _buildFormToggleSwitch() {
-    return Switch.adaptive(
-      value: light,
-      onChanged: (bool value) {
+  Widget _buildToggleSwitch() {
+    return ToggleSwitch(
+      initialLabelIndex: light ? 0 : 1,
+      totalSwitches: 2,
+      labels: const ['Habilitado', 'Inhabilitado'],
+      onToggle: (index) {
         setState(() {
-          light = value;
+          light = index == 0;
         });
       },
+      fontSize: 12.0, // Aumenta el tamaño del texto
+      minWidth: 100.0, // Aumenta el ancho de cada toggle
+      minHeight: 35.0, // Aumenta la altura del toggle
+      customTextStyles: const [
+        TextStyle(
+          color: Colors.white,
+          fontSize: 12.0, // Ajusta el tamaño del texto
+          fontWeight: FontWeight.bold,
+        ),
+        TextStyle(
+          color: Colors.white,
+          fontSize: 12.0, // Ajusta el tamaño del texto
+          fontWeight: FontWeight.bold,
+        ),
+      ],
     );
   }
 
@@ -143,7 +243,7 @@ class _FromSettingsState extends State<FromSettings> {
       'tipe_entry': _fieldType,
       'target_type': _fieldTargetType, // Guardar el tipo de usuario
       'options': _optionsControllers.map((e) => e.text.trim()).toList(),
-      'status': true,
+      'status': light,
       'information_input': DateTime.now(),
       'information_output': '',
       'created': '',
@@ -152,7 +252,9 @@ class _FromSettingsState extends State<FromSettings> {
     };
 
     try {
-      await FirebaseFirestore.instance.collection('form_settings').add(newField);
+      await FirebaseFirestore.instance
+          .collection('form_settings')
+          .add(newField);
       _resetForm();
       _showSnackBar('Campo agregado correctamente');
     } catch (error) {
@@ -170,7 +272,8 @@ class _FromSettingsState extends State<FromSettings> {
 
   bool _areDropdownOptionsInvalid() {
     if (_fieldType == 'dropdown' &&
-        _optionsControllers.any((controller) => controller.text.trim().isEmpty)) {
+        _optionsControllers
+            .any((controller) => controller.text.trim().isEmpty)) {
       _showSnackBar('Las opciones del dropdown no pueden estar vacías');
       return true;
     }

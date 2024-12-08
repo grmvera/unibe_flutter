@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:unibe_app_control/Widget/botton_navigaton_bart.dart';
+import 'package:unibe_app_control/admin/manage_accounts_admin.dart';
 import '../login/users_provider.dart';
 import '../login/login_screen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,8 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Widget/user_table.dart';
 import '../Widget/user_disabled_table.dart';
 import '../Widget/user_student.dart';
-import '../home/home_screen.dart';
-import '../admin/manage_accounts.dart';
+import 'manage_accounts_student.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -148,7 +148,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        const ManageAccountsStudent(), // Reemplaza con la pantalla correcta
+                        const ManageAccountsAdmin(), // Reemplaza con la pantalla correcta
                   ),
                 );
               },

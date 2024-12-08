@@ -6,23 +6,21 @@ import 'package:provider/provider.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import '../admin/form_settings.dart';
-import '../home/home_screen.dart';
-import '../admin/admin_home_screen.dart';
-import 'package:date_picker_plus/date_picker_plus.dart';
+import '../Widget/botton_navigaton_bart.dart';
 
-class ManageAccountsStudent extends StatefulWidget {
-  const ManageAccountsStudent({super.key});
+class ManageAccountsAdmin extends StatefulWidget {
+  const ManageAccountsAdmin({super.key});
 
   @override
-  _ManageAccountsStudent createState() => _ManageAccountsStudent();
+  _ManageAccountsAdmin createState() => _ManageAccountsAdmin();
 }
 
-class _ManageAccountsStudent extends State<ManageAccountsStudent> {
+class _ManageAccountsAdmin extends State<ManageAccountsAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registro de Cuenta para Estudiantes'),
+        title: const Text('Registro de Cuenta para Administradores'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -52,51 +50,37 @@ class _ManageAccountsStudent extends State<ManageAccountsStudent> {
                   children: <Widget>[
                     TextField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo',
-                        border: OutlineInputBorder(), // Mejora el diseño
-                        contentPadding: EdgeInsets.all(12),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(16),
+                        label: const Text('Correo Electronico'),
+                        hintText: 'Correo Electronico',
+                        hintStyle: const TextStyle(fontSize: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _idNumberController,
-                      decoration: const InputDecoration(
-                        labelText: 'Número de Cédula',
-                        border: OutlineInputBorder(), // Mejora el diseño
-                        contentPadding: EdgeInsets.all(12),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...snapshot.data!, // Agrega los campos de Firebase aquí
-                    DropdownButtonFormField<String>(
-                      value: role,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          role = newValue!;
-                        });
-                      },
-                      items: <String>['admin', 'student']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                        contentPadding: const EdgeInsets.all(16),
+                        label: const Text('Numero de Cedula'),
+                        hintText: 'Numero de Cedula',
+                        hintStyle: const TextStyle(fontSize: 14),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(8), // Mejora el diseño
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => crearUsuario(
-                          context), // Envuelve la llamada en una función anónima
-                      child: const Text('Crear Usuario'),
+                    ...snapshot
+                        .data!, // aqui se agrega los campos para los formularios
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => crearUsuario(context),
+                      icon: const Icon(Icons.person_add_alt),
+                      label: const Text('Crear'),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -110,32 +94,7 @@ class _ManageAccountsStudent extends State<ManageAccountsStudent> {
           },
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            label: 'Administración',
-          ),
-        ],
-        selectedItemColor: const Color.fromARGB(255, 0, 4, 255),
-        onTap: (int index) {
-          if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-            );
-          }
-        },
-      ),
+      bottomNavigationBar: const BottonNavigatonBart(),
     );
   }
 }
@@ -147,7 +106,7 @@ Future<List<Widget>> obtenerCamposFormulario() async {
   CollectionReference configuracion =
       FirebaseFirestore.instance.collection('form_settings');
   QuerySnapshot snapshot =
-      await configuracion.where('status', isEqualTo: true).get();
+      await configuracion.where('status', isEqualTo: true ).where('target_type', whereIn: ['Administrador', 'Todos']).get();
   for (var doc in snapshot.docs) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     if (data['tipe_entry'] == 'texto') {
@@ -163,9 +122,13 @@ Future<List<Widget>> obtenerCamposFormulario() async {
           child: TextField(
             controller: controller,
             decoration: InputDecoration(
+              contentPadding: const EdgeInsets.all(16),
               labelText: data['label'],
-              border: OutlineInputBorder(), // Mejora el diseño
-              contentPadding: EdgeInsets.all(12),
+              hintText: data['label'],
+              hintStyle: const TextStyle(fontSize: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
             ),
           ),
         ),
@@ -201,10 +164,11 @@ Future<List<Widget>> obtenerCamposFormulario() async {
                   );
                 }).toList(),
                 decoration: InputDecoration(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  contentPadding: const EdgeInsets.all(16),
+                  hintText: 'Nombre de la opcion',
+                  hintStyle: const TextStyle(fontSize: 14),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8), // Mejora el diseño
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),

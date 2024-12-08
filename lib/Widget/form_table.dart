@@ -177,9 +177,17 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
           children: [
             TextField(
               controller: labelController,
-              decoration: const InputDecoration(labelText: 'Etiqueta'),
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.all(16),
+                hintText: 'Nombre del campo',
+                hintStyle: const TextStyle(fontSize: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
               onChanged: (value) => setState(() {}),
             ),
+            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: targetType,
               onChanged: (String? newValue) {
@@ -187,7 +195,7 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
                   targetType = newValue!;
                 });
               },
-              items: <String>['estudiante', 'administrador']
+              items: <String>['Estudiante', 'Administrador', 'Todos']
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -199,31 +207,45 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: tipeEntryController,
-              decoration: const InputDecoration(
-                labelText: 'Tipo de Entrada',
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.all(16),
+                label: const Text('Tipo de Entrada'),
+                hintText: 'Nombre de la opcion',
+                hintStyle: const TextStyle(fontSize: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
               enabled: false,
             ),
+            const SizedBox(height: 16),
             if (tipeEntryController.text == 'dropdown')
               Column(
                 children: [
-                  ...optionControllers
-                      .map((controller) => TextField(
-                            controller: controller,
-                            decoration:
-                                const InputDecoration(labelText: 'Opción'),
-                            onChanged: (value) => setState(() {}),
-                          ))
-                      .toList(),
-                  ElevatedButton(
+                  ...optionControllers.map((controller) => TextField(
+                        controller: controller,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.all(16),
+                          label: const Text('Nombre de la opcion'),
+                          hintText: 'Nombre de la opcion',
+                          hintStyle: const TextStyle(fontSize: 14),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        onChanged: (value) => setState(() {}),
+                      )),
+                  ElevatedButton.icon(
                     onPressed: () {
                       setState(() {
                         optionControllers.add(TextEditingController());
                       });
                     },
-                    child: const Text('Agregar Opción'),
+                    icon: const Icon(Icons.exposure_plus_1),
+                    label: const Text('Agregar Opcion'),
                   ),
                 ],
               ),
@@ -231,13 +253,14 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        TextButton.icon(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text('Cancelar'),
+          icon: const Icon(Icons.cancel_outlined),
+          label: const Text('Cancelar'),
         ),
-        TextButton(
+        TextButton.icon(
           onPressed: () {
             _updateForm(
               widget.document.id,
@@ -249,7 +272,8 @@ class _UpdateFormDialogState extends State<_UpdateFormDialog> {
             );
             Navigator.of(context).pop();
           },
-          child: const Text('Actualizar'),
+          icon: const Icon(Icons.system_update_tv_rounded),
+          label: const Text('Actualizar'),
         ),
       ],
     );

@@ -30,7 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
           .get();
       if (userDoc.exists && userDoc['status'] == true) {
         Navigator.pushAndRemoveUntil(
-          context, MaterialPageRoute(builder: (context) => const HomeScreen()),
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
           (route) => false,
         );
       } else {
@@ -49,31 +50,82 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('Inicio'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0, // Sin sombra
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
+            Image.asset('images/logo_unibe.png',
+                width: MediaQuery.of(context).size.width * 0.7,
+                fit: BoxFit.contain),
+            // Título
+            const SizedBox(height: 100),
+            const Text(
+              'Inicio de Sesión',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 80),
+            // Campo de texto de Usuario y contraseña
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Correo'),
+              decoration: InputDecoration(
+                labelText: 'Usuario',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
+              obscureText: true, // Oculta el texto
             ),
+            // Botón de inicio de sesión
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _login,
-              child: const Text('Iniciar Sesión'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1225F5),
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'INICIAR',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
+            // Mensaje de error
+            const SizedBox(height: 30),
             Text(
               _errorMessage,
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(
+                color: Colors.red,
+              ),
             ),
           ],
         ),
