@@ -42,66 +42,45 @@ class InitialScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('UNIBE Identidad'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
+      appBar: AppBar(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // Logo
             Image.asset(
-              'assets/logo_unibe.png', // Asegúrate de que el logo esté en esta ruta
-              width: 150, // Ajusta el tamaño del logo
+              'images/logo_unibe.png',
+              width: MediaQuery.of(context).size.width *
+                  0.8,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 50), // Espacio entre logo y botón
-            // Botón
+            const SizedBox(height: 150),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Color del botón
+                backgroundColor: const Color(0xFF1225F5),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20), // Bordes redondeados
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                padding: const EdgeInsets.symmetric(
-                    vertical: 15, horizontal: 50), // Tamaño del botón
+                padding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
               ),
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const LoginScreen()), // Cambia a tu pantalla de inicio de sesión
+                      builder: (context) =>
+                          const LoginScreen()),
                 );
               },
               child: const Text(
                 'INGRESAR',
                 style: TextStyle(
-                  color: Colors.white, // Color del texto
+                  color: Colors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.bold, // Texto en negrita
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pantalla de Login'),
-      ),
-      body: const Center(
-        child: Text('Contenido de inicio de sesión'),
       ),
     );
   }
