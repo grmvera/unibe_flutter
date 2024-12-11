@@ -83,7 +83,10 @@ class ExcelUploader extends StatelessWidget {
 
                   if (user != null) {
                     // Guardar datos en Firestore
-                    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .set({
                       'idNumber': idNumber,
                       'firstName': firstName,
                       'lastName': lastName,
@@ -142,6 +145,13 @@ class ExcelUploader extends StatelessWidget {
       onPressed: () {
         _uploadExcel(context);
       },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF1225F5),
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
       icon: const Icon(Icons.upload_file),
       label: const Text('Cargar Archivo'),
     );

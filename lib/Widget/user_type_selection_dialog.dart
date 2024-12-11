@@ -21,28 +21,42 @@ class UserTypeSelectionDialog extends StatelessWidget {
           children: [
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pop(context); // Cierra el diálogo
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ManageAccountsStudent(),
                   ),
-                ); // Redirige al formulario de estudiantes
+                ); 
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1225F5),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               icon: const Icon(Icons.school),
               label: const Text('Estudiante'),
             ),
-            const SizedBox(width: 16), // Espaciado entre botones
+            const SizedBox(width: 16), 
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pop(context); // Cierra el diálogo
+                Navigator.pop(context); 
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ManageAccountsAdmin(),
                   ),
-                ); // Redirige al formulario de administradores
+                ); 
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1225F5),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               icon: const Icon(Icons.admin_panel_settings),
               label: const Text('Administrador'),
             ),

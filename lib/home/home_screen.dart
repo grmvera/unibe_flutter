@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         _buildLargeActionButton(
-          'Crear Estudiante',
+          'Crear Usarios',
           Icons.person_add,
           const Color(0xFF1225F5),
           onTap: () {
@@ -205,13 +205,13 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Center(
-            child: Text('Creación de Estudiante'),
+            child: Text('Gestión de Usuarios'),
           ),
           content: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Aquí podrás cargar un archivo Excel con la lista de estudiantes, y el sistema los creará automáticamente.',
+                'Aquí podrás cargar un archivo Excel con la lista de estudiantes o crear usuarios de forma manual.',
                 textAlign: TextAlign.center,
               ),
             ],
@@ -223,11 +223,19 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () {
+                    Navigator.pop(dialogContext);
                     showDialog(
                       context: dialogContext,
                       builder: (context) => const UserTypeSelectionDialog(),
                     );
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1225F5),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   icon: const Icon(Icons.person_add),
                   label: const Text('Crear Usuario'),
                 ),
@@ -242,6 +250,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1225F5),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   icon: const Icon(Icons.upload_file),
                   label: const Text('Cargar Archivo'),
                 ),

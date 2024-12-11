@@ -27,7 +27,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Image.asset(
-                'images/logo_unibe.png',
+                'images/unibe_logo_am.png',
                 width: 50,
                 height: 50,
               ),
