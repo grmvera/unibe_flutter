@@ -12,6 +12,7 @@ import '../Widget/excel_uploader.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -46,15 +47,32 @@ class _HomeScreenState extends State<HomeScreen> {
     final usuarioProvider = Provider.of<UsuarioProvider>(context);
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+    // Verificar estado de carga
+    if (usuarioProvider.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Verificar si los datos del usuario están disponibles
+    if (usuarioProvider.userData == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'Error: No se pudieron cargar los datos del usuario.',
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      );
+    }
+
     // Lista de pantallas para la navegación inferior
     final List<Widget> _screens = [
-      usuarioProvider.userData != null
-          ? (usuarioProvider.userData!['role'] == 'admin'
-              ? _buildAdminView()
-              : StudentView(userData: usuarioProvider.userData!))
-          : const Center(
-              child: CircularProgressIndicator(),
-            ),
+      usuarioProvider.userData!['role'] == 'admin'
+          ? _buildAdminView()
+          : StudentView(userData: usuarioProvider.userData!),
       const Center(
         child: Text('Escanear QR', style: TextStyle(fontSize: 20)),
       ),
@@ -65,11 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       key: scaffoldKey,
-      appBar: CustomAppBar(
-        userName: usuarioProvider.userData!['firstName'],
-        userRole: usuarioProvider.userData!['role'],
-        scaffoldKey: scaffoldKey,
-      ),
+      appBar: usuarioProvider.userData != null
+          ? CustomAppBar(
+              userName: usuarioProvider.userData!['firstName'] ?? 'Usuario',
+              userRole: usuarioProvider.userData!['role'] ?? 'Sin Rol',
+              scaffoldKey: scaffoldKey,
+            )
+          : null,
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
       body: _screens[_selectedIndex], // Carga la pantalla según el índice
       bottomNavigationBar: CustomBottomNavigationBar(
@@ -82,11 +102,12 @@ class _HomeScreenState extends State<HomeScreen> {
 // Vista para el administrador
   Widget _buildAdminView() {
     return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
       children: [
         _buildLargeActionButton(
           'Lista de Estudiantes',
           Icons.people,
-          Colors.lightBlue,
+          const Color(0xFF1225F5),
           onTap: () {
             Navigator.push(
               context,
@@ -97,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildLargeActionButton(
           'Crear Estudiante',
           Icons.person_add,
-          Colors.green,
+          const Color(0xFF1225F5),
           onTap: () {
             _showStudentDialog(context);
           },
@@ -105,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildLargeActionButton(
           'Bloquear Estudiante',
           Icons.person_off,
-          Colors.red,
+          const Color(0xFF1225F5),
           onTap: () {
             Navigator.push(
               context,
@@ -116,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildLargeActionButton(
           'Creación de Ciclo',
           Icons.event,
-          Colors.green,
+          const Color(0xFF1225F5),
           onTap: () {
             Navigator.push(
               context,
@@ -128,95 +149,107 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Botones de acción personalizados
+// Botones de acción personalizados con animación
   Widget _buildLargeActionButton(String title, IconData icon, Color color,
       {required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color.withOpacity(0.1),
-          foregroundColor: color,
-          padding: const EdgeInsets.all(20),
-          alignment: Alignment.centerLeft,
-          shape: RoundedRectangleBorder(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: color, width: 2),
           ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 40,
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Text(
-                title,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.2),
+                ),
+                child: Icon(
+                  icon,
+                  size: 30,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-//Dialogo para crear estudiante
+// Diálogo para crear estudiante
   void _showStudentDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: const Center(
-          child: Text('Creación de Estudiante'),
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Aquí podrás cargar un archivo Excel con la lista de estudiantes, y el sistema los creará automáticamente.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          Wrap(
-            spacing: 16,
-            alignment: WrapAlignment.center,
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Center(
+            child: Text('Creación de Estudiante'),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: dialogContext,
-                    builder: (context) => const UserTypeSelectionDialog(),
-                  );
-                },
-                icon: const Icon(Icons.person_add),
-                label: const Text('Crear Usuario'),
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  showDialog(
-                    context: dialogContext,
-                    builder: (context) => const AlertDialog(
-                      title: Text('Cargar Archivo'),
-                      content: ExcelUploader(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.upload_file),
-                label: const Text('Cargar Archivo'),
+              Text(
+                'Aquí podrás cargar un archivo Excel con la lista de estudiantes, y el sistema los creará automáticamente.',
+                textAlign: TextAlign.center,
               ),
             ],
           ),
-        ],
-      );
-    },
-  );
-}
-
+          actions: [
+            Wrap(
+              spacing: 16,
+              alignment: WrapAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: dialogContext,
+                      builder: (context) => const UserTypeSelectionDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('Crear Usuario'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    showDialog(
+                      context: dialogContext,
+                      builder: (context) => const AlertDialog(
+                        title: Text('Cargar Archivo'),
+                        content: ExcelUploader(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('Cargar Archivo'),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
