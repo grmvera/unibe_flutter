@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:unibe_app_control/Widget/botton_navigaton_bart.dart';
 import '../Widget/form_table.dart';
 import '../Widget/form_disabled_table.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -54,7 +53,7 @@ class _FromSettingsState extends State<FromSettings> {
             ),
           ),
         ),
-        bottomNavigationBar: const BottonNavigatonBart(),
+        
       ),
     );
   }
