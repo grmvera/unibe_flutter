@@ -27,8 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .get();
-      if (userDoc.exists && userDoc['status'] == true) {
+          .get(const GetOptions(source: Source.server));
+      if (userDoc.exists && userDoc.get('status') == true) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),

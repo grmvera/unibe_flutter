@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Lista de pantallas para la navegación inferior
-    final List<Widget> _screens = [
+    final List<Widget> screens = [
       usuarioProvider.userData!['role'] == 'admin'
           ? _buildAdminView()
           : StudentView(userData: usuarioProvider.userData!),
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
-      body: _screens[_selectedIndex], // Carga la pantalla según el índice
+      body: screens[_selectedIndex], // Carga la pantalla según el índice
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
