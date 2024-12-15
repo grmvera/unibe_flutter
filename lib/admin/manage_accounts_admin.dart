@@ -217,7 +217,7 @@ Future<void> crearUsuario(BuildContext context) async {
     User? user = userCredential.user;
     if (user != null) {
       Map<String, dynamic> valoresCampos = obtenerValoresCampos();
-      await FirebaseFirestore.instance.collection('users_student').add({
+      await FirebaseFirestore.instance.collection('users').add({
         'email': _emailController.text,
         'idNumber': _idNumberController.text,
         'role': role,

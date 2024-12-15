@@ -217,7 +217,7 @@ Future<void> crearUsuario(BuildContext context) async {
     User? user = userCredential.user;
     if (user != null) {
       Map<String, dynamic> valoresCampos = obtenerValoresCampos();
-      await FirebaseFirestore.instance.collection('users_student').add({
+      await FirebaseFirestore.instance.collection('users').add({
         'email': _emailController.text,
         'idNumber': _idNumberController.text,
         'role': role,
@@ -233,11 +233,11 @@ Future<void> crearUsuario(BuildContext context) async {
         value.update(valoresCampos); // Usar update para agregar los valores
       });
     }
-    /*await sendWelcomeEmail(_emailController.text);
+    await sendWelcomeEmail(_emailController.text);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Registro Satisfactorio')),
     );
-    Navigator.pop(context);*/
+    Navigator.pop(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Registro Satisfactorio')),
