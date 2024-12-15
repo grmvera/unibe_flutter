@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:unibe_app_control/Widget/block_unblock_widget.dart';
 import 'package:unibe_app_control/admin/admin_home_screen.dart';
 import '../login/users_provider.dart';
 import '../login/change_password.dart';
@@ -96,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Widget _buildAdminView() {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
@@ -121,14 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         _buildLargeActionButton(
-          'Bloquear Estudiante',
+          'Bloquear y Desbloquear Estudiante',
           Icons.person_off,
           const Color(0xFF1225F5),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-            );
+            BlockUnblockStudentsWidget.showBlockUnblockDialog(context);
           },
         ),
         _buildLargeActionButton(
