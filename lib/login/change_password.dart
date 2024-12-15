@@ -13,6 +13,9 @@ class _ChangePassword extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscureNewPassword = true; // Control de visibilidad de nueva contraseña
+  bool _obscureConfirmPassword = true; // Control de visibilidad de confirmación
+
   @override
   void dispose() {
     _newPasswordController.dispose();
@@ -25,7 +28,7 @@ class _ChangePassword extends State<ChangePassword> {
       try {
         await FirebaseAuth.instance.currentUser!
             .updatePassword(_newPasswordController.text);
-        
+
         String uid = FirebaseAuth.instance.currentUser!.uid;
         final usersCollection = FirebaseFirestore.instance.collection('users');
         await usersCollection.doc(uid).update({'isFirstLogin': false});
@@ -46,47 +49,133 @@ class _ChangePassword extends State<ChangePassword> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cambiar Contraseña'),
+        title: const Text(
+          'Cambiar Contraseña',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF3A3F58), // Color azul grisáceo
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
-            children: <Widget>[
-              TextFormField(
-                controller: _newPasswordController,
-                decoration:
-                    const InputDecoration(labelText: 'Nueva Contraseña'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese una contraseña';
-                  }
-                  if (value.length < 6) {
-                    return 'La contraseña debe tener al menos 6 caracteres';
-                  }
-                  return null;
-                },
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'Cambia tu contraseña',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
               ),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration:
-                    const InputDecoration(labelText: 'Confirmar Contraseña'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor confirme su contraseña';
-                  }
-                  if (value != _newPasswordController.text) {
-                    return 'Las contraseñas no coinciden';
-                  }
-                  return null;
-                },
+              const SizedBox(height: 10),
+              const Center(
+                child: Text(
+                  'Por favor, crea una nueva contraseña para tu cuenta.',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              ElevatedButton(
-                onPressed: _changePassword,
-                child: const Text('Cambiar Contraseña'),
+              const SizedBox(height: 30),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _newPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Nueva Contraseña',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscureNewPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _obscureNewPassword = !_obscureNewPassword;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: _obscureNewPassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingrese una contraseña';
+                        }
+                        if (value.length < 6) {
+                          return 'La contraseña debe tener al menos 6 caracteres';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Confirmar Contraseña',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: _obscureConfirmPassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor confirme su contraseña';
+                        }
+                        if (value != _newPasswordController.text) {
+                          return 'Las contraseñas no coinciden';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _changePassword,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          backgroundColor: const Color(0xFF1225F5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Cambiar Contraseña',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
