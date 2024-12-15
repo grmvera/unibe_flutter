@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import '../admin/form_settings.dart';
-import '../Widget/botton_navigaton_bart.dart';
+
 
 class ManageAccountsAdmin extends StatefulWidget {
   const ManageAccountsAdmin({super.key});
@@ -94,7 +94,7 @@ class _ManageAccountsAdmin extends State<ManageAccountsAdmin> {
           },
         ),
       ),
-      bottomNavigationBar: const BottonNavigatonBart(),
+      
     );
   }
 }

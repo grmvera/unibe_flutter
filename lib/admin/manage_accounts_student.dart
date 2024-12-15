@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import '../admin/form_settings.dart';
-import '../Widget/botton_navigaton_bart.dart';
+
 
 class ManageAccountsStudent extends StatefulWidget {
   const ManageAccountsStudent({super.key});
@@ -94,7 +94,7 @@ class _ManageAccountsStudent extends State<ManageAccountsStudent> {
           },
         ),
       ),
-      bottomNavigationBar: const BottonNavigatonBart(),
+      
     );
   }
 }
