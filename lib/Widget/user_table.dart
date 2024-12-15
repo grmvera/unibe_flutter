@@ -172,7 +172,7 @@ class _UserTableState extends State<UserTable> {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
                                             content: Text(
-                                                'Datos de usuario no válidos.')),
+                                                'Datos de usuario no son válidos.')),
                                       );
                                     }
                                   },
