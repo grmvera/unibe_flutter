@@ -3,7 +3,6 @@ import '../Widget/custom_app_bar.dart';
 import '../Widget/custom_drawer.dart';
 import '../Widget/custom_bottom_navigation_bar.dart';
 import '../Widget/user_table.dart';
-import '../Widget/user_disabled_table.dart';
 import '../login/users_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -52,60 +51,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _showDisabledUsersDialog(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1225F5),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Usuarios Inhabilitados'),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar estudiante...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
             UserTable(searchController: _searchController),
           ],
         ),
       ),
-    );
-  }
-
-  void _showDisabledUsersDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Usuarios Inhabilitados'),
-          content: const SingleChildScrollView(
-            child: UserDisabledTable(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cerrar'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

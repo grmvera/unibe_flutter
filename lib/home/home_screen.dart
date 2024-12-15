@@ -47,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final usuarioProvider = Provider.of<UsuarioProvider>(context);
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
-    // Verificar estado de carga
     if (usuarioProvider.isLoading) {
       return const Scaffold(
         body: Center(
@@ -56,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Verificar si los datos del usuario están disponibles
     if (usuarioProvider.userData == null) {
       return const Scaffold(
         body: Center(
@@ -68,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Lista de pantallas para la navegación inferior
     final List<Widget> screens = [
       usuarioProvider.userData!['role'] == 'admin'
           ? _buildAdminView()
@@ -91,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
-      body: screens[_selectedIndex], // Carga la pantalla según el índice
+      body: screens[_selectedIndex],
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -99,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Vista para el administrador
+
   Widget _buildAdminView() {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
@@ -149,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Botones de acción personalizados con animación
   Widget _buildLargeActionButton(String title, IconData icon, Color color,
       {required VoidCallback onTap}) {
     return Padding(
@@ -198,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Diálogo para crear estudiante
   void _showStudentDialog(BuildContext context) {
     showDialog(
       context: context,
