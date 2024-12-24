@@ -3,7 +3,7 @@ name: Deploy Flutter Web to Firebase Hosting on Merge
 on:
   push:
     branches:
-      - main # Cambia si usas otra rama principal
+      - main # Cambia si usas otra rama como "master"
 
 jobs:
   build_and_deploy:
@@ -14,18 +14,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Configurar Flutter con una versión específica
+      # Configurar Flutter con la misma versión que usas localmente
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.6'
+          flutter-version: '3.27.1'
           channel: stable
 
       # Instalar dependencias de Flutter
       - name: Install dependencies
         run: flutter pub get
 
-      # Construir la aplicación Flutter para Web
+      # Construir la aplicación Flutter Web
       - name: Build Flutter Web
         run: flutter build web
 
