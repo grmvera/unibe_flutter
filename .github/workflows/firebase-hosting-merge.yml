@@ -3,33 +3,33 @@ name: Deploy Flutter Web to Firebase Hosting on Merge
 on:
   push:
     branches:
-      - main # Cambia esto si tu rama principal tiene otro nombre, como "master"
+      - main # Cambia si usas otra rama principal
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Paso 1: Clona el repositorio
+      # Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Paso 2: Configura Flutter
+      # Configurar Flutter con una versión específica
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.5' # Cambia por la versión más reciente de Flutter estable
+          flutter-version: '3.13.6'
           channel: stable
 
-      # Paso 3: Instalar dependencias de Flutter
+      # Instalar dependencias de Flutter
       - name: Install dependencies
         run: flutter pub get
 
-      # Paso 4: Construir la aplicación Flutter Web
+      # Construir la aplicación Flutter para Web
       - name: Build Flutter Web
         run: flutter build web
 
-      # Paso 5: Desplegar a Firebase Hosting
+      # Desplegar a Firebase Hosting
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
