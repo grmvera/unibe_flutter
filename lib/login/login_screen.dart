@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -14,8 +14,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorMessage = '';
+  bool _isLoading = false;
 
   Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -44,14 +49,17 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _errorMessage = 'Error al iniciar sesión: ${e.toString()}';
       });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          true, // Permite que el contenido se ajuste al teclado
+      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -69,8 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 'Inicio de Sesión',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
               const SizedBox(height: 30),
@@ -79,10 +88,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: InputDecoration(
                   labelText: 'Usuario',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor: Colors.grey[100],
+                  prefixIcon:
+                      const Icon(Icons.person, color: Colors.blueAccent),
                 ),
               ),
               const SizedBox(height: 20),
@@ -91,29 +102,60 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.lock, color: Colors.blueAccent),
                 ),
                 obscureText: true,
               ),
               const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _login,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1225F5),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+              GestureDetector(
+                onTap: _isLoading ? null : _login,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: double.infinity,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    gradient: _isLoading
+                        ? LinearGradient(colors: [
+                            Colors.grey[400]!,
+                            Colors.grey[300]!,
+                          ])
+                        : const LinearGradient(colors: [
+                            Color(0xFF6A11CB),
+                            Color(0xFF2575FC),
+                          ]),
+                    boxShadow: _isLoading
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            )
+                          ],
                   ),
-                ),
-                child: const Text(
-                  'INICIAR',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  child: Center(
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'INICIAR',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ),
