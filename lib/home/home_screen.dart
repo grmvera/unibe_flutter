@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unibe_app_control/Widget/block_unblock_widget.dart';
 import 'package:unibe_app_control/admin/admin_home_screen.dart';
+import 'package:unibe_app_control/admin/cyclemanagementscreen.dart';
 import '../login/users_provider.dart';
 import '../login/change_password.dart';
 import '../Widget/custom_drawer.dart';
@@ -135,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const CycleManagementScreen()),
             );
           },
         ),
