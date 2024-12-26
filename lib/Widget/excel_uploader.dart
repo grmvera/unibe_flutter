@@ -6,10 +6,46 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../login/users_provider.dart';
 
-class ExcelUploader extends StatelessWidget {
+class ExcelUploader extends StatefulWidget {
   const ExcelUploader({super.key});
 
+  @override
+  State<ExcelUploader> createState() => _ExcelUploaderState();
+}
+
+class _ExcelUploaderState extends State<ExcelUploader> {
+  String? selectedCycle; // Ciclo seleccionado
+  List<DocumentSnapshot> cycles = []; // Lista de ciclos desde Firebase
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCycles();
+  }
+
+  // Obtener ciclos desde Firebase
+  Future<void> _fetchCycles() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('cycles').get();
+      setState(() {
+        cycles = snapshot.docs;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar los ciclos: $e')),
+      );
+    }
+  }
+
   Future<void> _uploadExcel(BuildContext context) async {
+    if (selectedCycle == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona un ciclo primero')),
+      );
+      return;
+    }
+
     try {
       // Seleccionar archivo Excel
       FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -94,6 +130,7 @@ class ExcelUploader extends StatelessWidget {
                       'career': career,
                       'role': 'estudiante',
                       'semestre': semestre,
+                      'cycleId': selectedCycle, // Asocia el usuario al ciclo
                       'information_input': informationInput,
                       'isFirstLogin': true,
                       'status': true,
@@ -141,19 +178,45 @@ class ExcelUploader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: () {
-        _uploadExcel(context);
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1225F5),
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DropdownButtonFormField<String>(
+          value: selectedCycle,
+          items: cycles.map((cycle) {
+            return DropdownMenuItem<String>(
+              value: cycle.id, // ID del ciclo
+              child: Text(cycle['name']), // Nombre del ciclo
+            );
+          }).toList(),
+          decoration: InputDecoration(
+            labelText: 'Seleccionar Ciclo',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onChanged: (value) {
+            setState(() {
+              selectedCycle = value;
+            });
+          },
         ),
-      ),
-      icon: const Icon(Icons.upload_file),
-      label: const Text('Cargar Archivo'),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          onPressed: () {
+            _uploadExcel(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1225F5),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          icon: const Icon(Icons.upload_file),
+          label: const Text('Cargar Archivo'),
+        ),
+      ],
     );
   }
 }

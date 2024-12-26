@@ -25,6 +25,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   firebase_core: ^2.10.0
   firebase_auth: ^4.6.1
   cloud_firestore: ^4.17.5
@@ -33,7 +35,7 @@ dependencies:
   flutter_progress_hud: ^2.0.2
   qr_flutter: ^4.0.0
   date_picker_plus: ^3.0.2
-  cupertino_icons: ^1.0.6
+  cupertino_icons: ^1.0.6  
   provider: ^6.1.2
   mailer: ^6.1.2
   toggle_switch: ^2.3.0
@@ -59,13 +61,13 @@ flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-  uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
+  uses-material-design: true
   assets:
-  - images/logo_unibe.png
-  - images/logo_unibe_dos.jpg
-  - images/unibe_logo_am.png
+    - images/logo_unibe.png
+    - images/logo_unibe_dos.jpg
+    - images/unibe_logo_am.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

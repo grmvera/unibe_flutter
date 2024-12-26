@@ -17,7 +17,10 @@ class UserTable extends StatefulWidget {
 class _UserTableState extends State<UserTable> {
   final Stream<QuerySnapshot> _usersStream =
       FirebaseFirestore.instance.collection('users').snapshots();
+  final Stream<QuerySnapshot> _cyclesStream =
+      FirebaseFirestore.instance.collection('cycles').snapshots();
 
+  String? selectedCycleId;
   int _currentPage = 0;
   final int _itemsPerPage = 5;
   late FocusNode _focusNode;
@@ -38,19 +41,25 @@ class _UserTableState extends State<UserTable> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TextField(
-          controller: widget.searchController,
-          focusNode: _focusNode,
-          onChanged: (value) {
-            setState(() {}); 
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = constraints.maxWidth < 600;
+            return isSmallScreen
+                ? Column(
+                    children: [
+                      _buildCycleDropdown(),
+                      const SizedBox(height: 10),
+                      _buildSearchField(),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(flex: 2, child: _buildCycleDropdown()),
+                      const SizedBox(width: 10),
+                      Expanded(flex: 3, child: _buildSearchField()),
+                    ],
+                  );
           },
-          decoration: InputDecoration(
-            hintText: 'Buscar estudiante por cédula...',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-          ),
         ),
         const SizedBox(height: 20),
         StreamBuilder<QuerySnapshot>(
@@ -67,7 +76,13 @@ class _UserTableState extends State<UserTable> {
               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
               final searchText = widget.searchController.text.toLowerCase();
               final idNumber = data['idNumber']?.toString().toLowerCase() ?? '';
-              return idNumber.contains(searchText);
+              final cycleId = data['cycleId']?.toString();
+
+              final matchesSearch = idNumber.contains(searchText);
+              final matchesCycle =
+                  selectedCycleId == null || cycleId == selectedCycleId;
+
+              return matchesSearch && matchesCycle;
             }).toList();
 
             int startIndex = _currentPage * _itemsPerPage;
@@ -88,9 +103,9 @@ class _UserTableState extends State<UserTable> {
                         minWidth: MediaQuery.of(context).size.width,
                       ),
                       child: DataTable(
-                        headingRowColor: WidgetStateColor.resolveWith(
+                        headingRowColor: MaterialStateColor.resolveWith(
                             (states) => Colors.grey[300]!),
-                        dataRowColor: WidgetStateColor.resolveWith(
+                        dataRowColor: MaterialStateColor.resolveWith(
                             (states) => Colors.grey[100]!),
                         columns: const [
                           DataColumn(
@@ -123,7 +138,7 @@ class _UserTableState extends State<UserTable> {
                               document.data()! as Map<String, dynamic>;
                           return DataRow(
                             cells: [
-                              DataCell(Text(data['idNumber'] ?? '')), 
+                              DataCell(Text(data['idNumber'] ?? '')),
                               DataCell(
                                 Text(
                                   "${data['firstName'] ?? ''} ${data['lastName'] ?? ''}",
@@ -210,6 +225,65 @@ class _UserTableState extends State<UserTable> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildCycleDropdown() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _cyclesStream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const CircularProgressIndicator();
+        }
+
+        final cycles = snapshot.data!.docs;
+
+        return DropdownButtonFormField<String>(
+          value: selectedCycleId,
+          decoration: InputDecoration(
+            labelText: 'Seleccionar Ciclo',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+          ),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Text('Todos los ciclos'),
+            ),
+            ...cycles.map((cycle) {
+              return DropdownMenuItem<String>(
+                value: cycle.id,
+                child: Text(cycle['name']),
+              );
+            }).toList(),
+          ],
+          onChanged: (value) {
+            setState(() {
+              selectedCycleId = value;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: widget.searchController,
+      focusNode: _focusNode,
+      onChanged: (value) {
+        setState(() {});
+      },
+      decoration: InputDecoration(
+        hintText: 'Buscar estudiante por cédula...',
+        prefixIcon: const Icon(Icons.search),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
     );
   }
 }
