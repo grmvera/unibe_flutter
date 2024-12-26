@@ -60,9 +60,9 @@ Estudiantes:
   - Escanear códigos QR para registrar accesos.
 
 ## Contacto
-Desarrollador: Geovanny Rodolfo Vera Murillo
-Email: geovanny00vera@gmail.com
-LinkedIn: Perfil de LinkedIn
+- Desarrollador: Geovanny Rodolfo Vera Murillo
+- Email: geovanny00vera@gmail.com
+- LinkedIn: Perfil de LinkedIn
 
 ## Estructura del Proyecto
 La estructura principal del proyecto es la siguiente:
