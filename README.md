@@ -1,6 +1,6 @@
 # UNIBE App Control
 
-**UNIBE App Control** es una aplicación móvil desarrollada en Flutter, diseñada para el control de acceso en el área de tecnología e innovación de la Universidad Iberoamericana del Ecuador (UNIBE).
+**UNIBE App Control** es una aplicación móvil desarrollada en Flutter, diseñada para el control de acceso en la Universidad Iberoamericana del Ecuador (UNIBE).
 
 ## Tabla de Contenidos
 
