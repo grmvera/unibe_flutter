@@ -55,6 +55,7 @@ Administrador:
   - Crear cuentas de estudiantes (masivamente o individualmente).
   - Gestionar ciclos escolares.
   - Habilitar o suspender cuentas de estudiantes.
+    
 Estudiantes:
   - Iniciar sesión para visualizar su carné.
   - Escanear códigos QR para registrar accesos.
