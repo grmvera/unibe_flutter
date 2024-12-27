@@ -14,8 +14,8 @@ class ExcelUploader extends StatefulWidget {
 }
 
 class _ExcelUploaderState extends State<ExcelUploader> {
-  String? selectedCycle; // Ciclo seleccionado
-  List<DocumentSnapshot> cycles = []; // Lista de ciclos desde Firebase
+  String? selectedCycle;
+  List<DocumentSnapshot> cycles = [];
 
   @override
   void initState() {
@@ -23,7 +23,6 @@ class _ExcelUploaderState extends State<ExcelUploader> {
     _fetchCycles();
   }
 
-  // Obtener ciclos desde Firebase
   Future<void> _fetchCycles() async {
     try {
       QuerySnapshot snapshot =
@@ -47,7 +46,6 @@ class _ExcelUploaderState extends State<ExcelUploader> {
     }
 
     try {
-      // Seleccionar archivo Excel
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
@@ -57,11 +55,9 @@ class _ExcelUploaderState extends State<ExcelUploader> {
         var bytes = result.files.single.bytes;
 
         if (bytes != null) {
-          // Procesar el archivo Excel
           var excel = Excel.decodeBytes(bytes);
           String fileName = result.files.single.name;
 
-          // Mostrar un diálogo de progreso
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -83,7 +79,6 @@ class _ExcelUploaderState extends State<ExcelUploader> {
             ),
           );
 
-          // Procesar las filas del archivo Excel
           bool errorOccurred = false;
           for (var table in excel.tables.keys) {
             List<List<Data?>> rows = excel.tables[table]!.rows;
@@ -101,14 +96,12 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                 var created =
                     Provider.of<UsuarioProvider>(context, listen: false);
 
-                // Validar que los datos sean completos
                 if (idNumber != null &&
                     firstName != null &&
                     lastName != null &&
                     email != null &&
                     career != null &&
                     semestre != null) {
-                  // Crear usuario en Firebase Authentication
                   UserCredential userCredential = await FirebaseAuth.instance
                       .createUserWithEmailAndPassword(
                     email: email,
@@ -118,7 +111,6 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                   User? user = userCredential.user;
 
                   if (user != null) {
-                    // Guardar datos en Firestore
                     await FirebaseFirestore.instance
                         .collection('users')
                         .doc(user.uid)
@@ -130,7 +122,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                       'career': career,
                       'role': 'estudiante',
                       'semestre': semestre,
-                      'cycleId': selectedCycle, // Asocia el usuario al ciclo
+                      'cycleId': selectedCycle,
                       'information_input': informationInput,
                       'isFirstLogin': true,
                       'status': true,
@@ -149,10 +141,8 @@ class _ExcelUploaderState extends State<ExcelUploader> {
             }
           }
 
-          // Cerrar el diálogo de progreso
           Navigator.pop(context);
 
-          // Mostrar mensaje de éxito o error
           if (!errorOccurred) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Usuarios creados con éxito')),
@@ -169,7 +159,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
         );
       }
     } catch (e) {
-      Navigator.pop(context); // Cerrar el diálogo en caso de error
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar el archivo: $e')),
       );
@@ -180,19 +170,48 @@ class _ExcelUploaderState extends State<ExcelUploader> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Título para el Dropdown
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            'Seleccionar Ciclo',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ),
         DropdownButtonFormField<String>(
           value: selectedCycle,
           items: cycles.map((cycle) {
             return DropdownMenuItem<String>(
-              value: cycle.id, // ID del ciclo
-              child: Text(cycle['name']), // Nombre del ciclo
+              value: cycle.id,
+              child: Text(
+                cycle['name'],
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
             );
           }).toList(),
           decoration: InputDecoration(
-            labelText: 'Seleccionar Ciclo',
+            filled: true,
+            fillColor: Colors.grey[100],
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF1225F5), width: 2),
             ),
           ),
           onChanged: (value) {
@@ -201,20 +220,39 @@ class _ExcelUploaderState extends State<ExcelUploader> {
             });
           },
         ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () {
-            _uploadExcel(context);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1225F5),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+        const SizedBox(height: 24),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: () {
+              _uploadExcel(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1225F5),
+              foregroundColor: Colors.white, 
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15), 
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: 16, 
+                horizontal: 24, 
+              ),
+              elevation: 6, 
+              shadowColor: Colors.black45, 
+            ),
+            icon: const Icon(
+              Icons.upload_file,
+              size: 24, 
+              color: Colors.white, 
+            ),
+            label: const Text(
+              'Cargar Archivo',
+              style: TextStyle(
+                fontSize: 18, 
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2, 
+              ),
             ),
           ),
-          icon: const Icon(Icons.upload_file),
-          label: const Text('Cargar Archivo'),
         ),
       ],
     );
