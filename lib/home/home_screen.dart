@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unibe_app_control/Widget/block_unblock_widget.dart';
 import 'package:unibe_app_control/admin/admin_home_screen.dart';
+import 'package:unibe_app_control/admin/userscreatecreen.dart';
 import 'package:unibe_app_control/admin/cyclemanagementscreen.dart';
 import '../login/users_provider.dart';
 import '../login/change_password.dart';
@@ -9,7 +10,6 @@ import '../Widget/custom_drawer.dart';
 import '../Widget/student_view.dart';
 import '../Widget/custom_app_bar.dart';
 import '../Widget/custom_bottom_navigation_bar.dart';
-import '../Widget/user_type_selection_dialog.dart';
 import '../Widget/excel_uploader.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -201,15 +201,15 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: Row(
+          title: const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.group_add,
                 color: Color(0xFF1225F5),
                 size: 30,
               ),
-              const SizedBox(width: 10),
-              const Text(
+              SizedBox(width: 10),
+              Text(
                 'Gestión de Usuarios',
                 style: TextStyle(
                   fontSize: 20,
@@ -241,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.pop(dialogContext);
                       showDialog(
                         context: dialogContext,
-                        builder: (context) => const UserTypeSelectionDialog(),
+                        builder: (context) => const UserCreationScreen(),
                       );
                     },
                   ),
