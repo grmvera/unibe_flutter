@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unibe_app_control/Widget/block_unblock_widget.dart';
 import 'package:unibe_app_control/admin/admin_home_screen.dart';
+import 'package:unibe_app_control/admin/userscreatecreen.dart';
 import 'package:unibe_app_control/admin/cyclemanagementscreen.dart';
 import '../login/users_provider.dart';
 import '../login/change_password.dart';
@@ -9,7 +10,6 @@ import '../Widget/custom_drawer.dart';
 import '../Widget/student_view.dart';
 import '../Widget/custom_app_bar.dart';
 import '../Widget/custom_bottom_navigation_bar.dart';
-import '../Widget/user_type_selection_dialog.dart';
 import '../Widget/excel_uploader.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -198,67 +198,126 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Center(
-            child: Text('Gestión de Usuarios'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          content: const Column(
+          title: const Row(
+            children: [
+              Icon(
+                Icons.group_add,
+                color: Color(0xFF1225F5),
+                size: 30,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Gestión de Usuarios',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Aquí podrás cargar un archivo Excel con la lista de estudiantes o crear usuarios de forma manual.',
+              const Text(
+                '¿Qué deseas realizar?\nSelecciona una de las siguientes opciones:',
                 textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildDialogButton(
+                    context: dialogContext,
+                    title: 'Crear Usuario',
+                    icon: Icons.person_add,
+                    color: const Color(0xFF1225F5),
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      showDialog(
+                        context: dialogContext,
+                        builder: (context) => const UserCreationScreen(),
+                      );
+                    },
+                  ),
+                  _buildDialogButton(
+                    context: dialogContext,
+                    title: 'Cargar Archivo',
+                    icon: Icons.upload_file,
+                    color: const Color(0xFF27AE60),
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      showDialog(
+                        context: dialogContext,
+                        builder: (context) => const AlertDialog(
+                          title: Text('Cargar Archivo'),
+                          content: ExcelUploader(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
           actions: [
-            Wrap(
-              spacing: 16,
-              alignment: WrapAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    showDialog(
-                      context: dialogContext,
-                      builder: (context) => const UserTypeSelectionDialog(),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1225F5),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[300],
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  icon: const Icon(Icons.person_add),
-                  label: const Text('Crear Usuario'),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  elevation: 0,
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    showDialog(
-                      context: dialogContext,
-                      builder: (context) => const AlertDialog(
-                        title: Text('Cargar Archivo'),
-                        content: ExcelUploader(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1225F5),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Cargar Archivo'),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(fontSize: 16),
                 ),
-              ],
+              ),
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDialogButton({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 24, color: Colors.white),
+      label: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      ),
     );
   }
 }
