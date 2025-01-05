@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unibe_app_control/Widget/student_view.dart';
@@ -28,6 +30,7 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
   late TextEditingController emailController;
   int _selectedIndex = 0;
   bool isBlocked = false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -147,6 +150,34 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> updateEmailInAuth(String userId, String newEmail) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'https://us-central1-controlacceso-403b0.cloudfunctions.net/updateUserEmail'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'uid': userId,
+          'newEmail': newEmail,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('Correo actualizado exitosamente en Authentication.')),
+        );
+      } else {
+        throw Exception('Error: ${response.body}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar el correo: $e')),
+      );
+    }
   }
 
   @override
@@ -302,28 +333,50 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
               const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(widget.userId)
-                          .update({
-                        'firstName': firstNameController.text,
-                        'lastName': lastNameController.text,
-                        'email': emailController.text,
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Usuario actualizado exitosamente')),
-                      );
-                      Navigator.pop(context);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Error al actualizar el usuario')),
-                      );
-                    }
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          try {
+                            String newEmail = emailController.text.trim();
+                            if (newEmail.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'El campo de correo no puede estar vacío')),
+                              );
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
+
+                            await updateEmailInAuth(widget.userId, newEmail);
+
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(widget.userId)
+                                .update({
+                              'firstName': firstNameController.text.trim(),
+                              'lastName': lastNameController.text.trim(),
+                              'email': newEmail,
+                            });
+
+                            Navigator.pop(context);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Error al actualizar el usuario: $e')),
+                            );
+                          } finally {
+                            setState(() {
+                              isLoading = false;
+                            });
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 40, vertical: 15),
@@ -331,7 +384,21 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text('Guardar Cambios'),
+                  child: isLoading
+                      ? const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Guardando...',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        )
+                      : const Text('Guardar Cambios'),
                 ),
               ),
             ],
