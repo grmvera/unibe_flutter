@@ -41,6 +41,9 @@ dependencies:
   toggle_switch: ^2.3.0
   dropdown_button2: ^2.3.8
   http: ^1.2.2
+  camera: 0.10.0+2
+  permission_handler: ^10.0.0
+  qr_code_scanner: ^1.0.0
 
 dev_dependencies:
   flutter_test:

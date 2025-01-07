@@ -28,33 +28,29 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.example.unibe_app_control"
-    compileSdk = flutter.compileSdkVersion
+     compileSdkVersion 34 // Cambia a 34
     ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId "com.example.unibe_app_control"
+        minSdkVersion 21 // O el valor más bajo que necesites
+        targetSdkVersion 34 // Cambia a 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
-    defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.unibe_app_control"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutterVersionCode.toInteger()
-        versionName = flutterVersionName
-    }
-
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
-        }
-    }
 }
+
 
 flutter {
     source = "../.."
