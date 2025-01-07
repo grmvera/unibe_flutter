@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unibe_app_control/Widget/student_view.dart';
 import '../Widget/custom_app_bar.dart';
 import '../Widget/custom_bottom_navigation_bar.dart';
@@ -53,6 +54,19 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
     idNumberController.dispose();
     emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Correo de restablecimiento enviado.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar correo de restablecimiento: $e')),
+      );
+    }
   }
 
   Future<void> bloquearUsuario(String userId) async {
@@ -330,6 +344,31 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                     ),
                   ],
                 ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    String email = emailController.text.trim();
+                    if (email.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('El campo de correo no puede estar vacío')),
+                      );
+                      return;
+                    }
+                    await resetPassword(email);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text('Restablecer Contraseña'),
+                ),
+              ),
               const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
