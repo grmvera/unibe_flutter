@@ -103,9 +103,9 @@ class _UserTableState extends State<UserTable> {
                         minWidth: MediaQuery.of(context).size.width,
                       ),
                       child: DataTable(
-                        headingRowColor: MaterialStateColor.resolveWith(
+                        headingRowColor: WidgetStateColor.resolveWith(
                             (states) => Colors.grey[300]!),
-                        dataRowColor: MaterialStateColor.resolveWith(
+                        dataRowColor: WidgetStateColor.resolveWith(
                             (states) => Colors.grey[100]!),
                         columns: const [
                           DataColumn(

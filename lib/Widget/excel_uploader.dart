@@ -1,10 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../login/users_provider.dart';
+import 'package:http/http.dart' as http;
 
 class ExcelUploader extends StatefulWidget {
   const ExcelUploader({super.key});
@@ -14,8 +15,8 @@ class ExcelUploader extends StatefulWidget {
 }
 
 class _ExcelUploaderState extends State<ExcelUploader> {
-  String? selectedCycle; // Ciclo seleccionado
-  List<DocumentSnapshot> cycles = []; // Lista de ciclos desde Firebase
+  String? selectedCycle;
+  List<DocumentSnapshot> cycles = [];
 
   @override
   void initState() {
@@ -23,7 +24,6 @@ class _ExcelUploaderState extends State<ExcelUploader> {
     _fetchCycles();
   }
 
-  // Obtener ciclos desde Firebase
   Future<void> _fetchCycles() async {
     try {
       QuerySnapshot snapshot =
@@ -47,7 +47,6 @@ class _ExcelUploaderState extends State<ExcelUploader> {
     }
 
     try {
-      // Seleccionar archivo Excel
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
@@ -57,11 +56,9 @@ class _ExcelUploaderState extends State<ExcelUploader> {
         var bytes = result.files.single.bytes;
 
         if (bytes != null) {
-          // Procesar el archivo Excel
           var excel = Excel.decodeBytes(bytes);
           String fileName = result.files.single.name;
 
-          // Mostrar un diálogo de progreso
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -83,8 +80,9 @@ class _ExcelUploaderState extends State<ExcelUploader> {
             ),
           );
 
-          // Procesar las filas del archivo Excel
+          List<Map<String, String>> usersToUpdate = [];
           bool errorOccurred = false;
+
           for (var table in excel.tables.keys) {
             List<List<Data?>> rows = excel.tables[table]!.rows;
 
@@ -97,45 +95,78 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                 var career = row[4]?.value?.toString();
                 var semestre = row[5]?.value?.toString();
                 var password = idNumber;
-                var informationInput = DateTime.now();
-                var created =
-                    Provider.of<UsuarioProvider>(context, listen: false);
 
-                // Validar que los datos sean completos
                 if (idNumber != null &&
                     firstName != null &&
                     lastName != null &&
                     email != null &&
                     career != null &&
                     semestre != null) {
-                  // Crear usuario en Firebase Authentication
-                  UserCredential userCredential = await FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
-                    email: email,
-                    password: password!,
-                  );
+                  // Buscar usuario existente por idNumber
+                  var existingUsers = await FirebaseFirestore.instance
+                      .collection('users')
+                      .where('idNumber', isEqualTo: idNumber)
+                      .get();
 
-                  User? user = userCredential.user;
+                  if (existingUsers.docs.isNotEmpty) {
+                    // Usuario ya existe, actualizar datos
+                    var userDoc = existingUsers.docs.first;
 
-                  if (user != null) {
-                    // Guardar datos en Firestore
                     await FirebaseFirestore.instance
                         .collection('users')
-                        .doc(user.uid)
-                        .set({
-                      'idNumber': idNumber,
+                        .doc(userDoc.id)
+                        .update({
                       'firstName': firstName,
                       'lastName': lastName,
                       'email': email,
                       'career': career,
-                      'role': 'estudiante',
                       'semestre': semestre,
-                      'cycleId': selectedCycle, // Asocia el usuario al ciclo
-                      'information_input': informationInput,
-                      'isFirstLogin': true,
+                      'cycleId': selectedCycle,
                       'status': true,
-                      'created': created.userData!['firstName'].toString(),
+                      'updated_at': DateTime.now(),
                     });
+
+                    // Enviar correo al usuario actualizado
+                    await _sendEmail(email, "$firstName $lastName", idNumber);
+
+                    // Enlistar a los usuarios existentes
+                    if (userDoc['email'] != email) {
+                      usersToUpdate.add({
+                        'uid': userDoc.id,
+                        'newEmail': email,
+                      });
+                    }
+                  } else {
+                    // Crear usuario nuevo
+                    UserCredential userCredential = await FirebaseAuth.instance
+                        .createUserWithEmailAndPassword(
+                      email: email,
+                      password: password!,
+                    );
+
+                    User? user = userCredential.user;
+
+                    if (user != null) {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .set({
+                        'idNumber': idNumber,
+                        'firstName': firstName,
+                        'lastName': lastName,
+                        'email': email,
+                        'career': career,
+                        'role': 'estudiante',
+                        'semestre': semestre,
+                        'cycleId': selectedCycle,
+                        'information_input': DateTime.now(),
+                        'isFirstLogin': true,
+                        'status': true,
+                      });
+
+                      // Enviar correo al usuario creado
+                      await _sendEmail(email, "$firstName $lastName", idNumber);
+                    }
                   }
                 } else {
                   throw Exception('Datos incompletos en la fila: $row');
@@ -149,10 +180,22 @@ class _ExcelUploaderState extends State<ExcelUploader> {
             }
           }
 
-          // Cerrar el diálogo de progreso
+          if (usersToUpdate.isNotEmpty) {
+            try {
+              await _updateEmailsInBulk(usersToUpdate);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Correos actualizados en Firebase Auth')),
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error en actualización masiva: $e')),
+              );
+            }
+          }
+
           Navigator.pop(context);
 
-          // Mostrar mensaje de éxito o error
           if (!errorOccurred) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Usuarios creados con éxito')),
@@ -169,10 +212,55 @@ class _ExcelUploaderState extends State<ExcelUploader> {
         );
       }
     } catch (e) {
-      Navigator.pop(context); // Cerrar el diálogo en caso de error
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar el archivo: $e')),
       );
+    }
+  }
+
+  Future<void> _sendEmail(
+      String email, String displayName, String idNumber) async {
+    final uri = Uri.parse(
+        'https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app'); 
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'displayName': displayName,
+          'idNumber': idNumber,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al enviar el correo: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error al enviar el correo: $e');
+    }
+  }
+
+  Future<void> _updateEmailsInBulk(
+      List<Map<String, String>> usersToUpdate) async {
+    final uri = Uri.parse('https://updateemailsinbulk-vmgeqj7yha-uc.a.run.app');
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'users': usersToUpdate}),
+      );
+      print(jsonEncode({'users': usersToUpdate}));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Error en la respuesta de la función: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error al actualizar correos en Auth: $e');
     }
   }
 
@@ -180,19 +268,47 @@ class _ExcelUploaderState extends State<ExcelUploader> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            'Seleccionar Ciclo',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ),
         DropdownButtonFormField<String>(
           value: selectedCycle,
           items: cycles.map((cycle) {
             return DropdownMenuItem<String>(
-              value: cycle.id, // ID del ciclo
-              child: Text(cycle['name']), // Nombre del ciclo
+              value: cycle.id,
+              child: Text(
+                cycle['name'],
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
             );
           }).toList(),
           decoration: InputDecoration(
-            labelText: 'Seleccionar Ciclo',
+            filled: true,
+            fillColor: Colors.grey[100],
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF1225F5), width: 2),
             ),
           ),
           onChanged: (value) {
@@ -201,20 +317,43 @@ class _ExcelUploaderState extends State<ExcelUploader> {
             });
           },
         ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () {
-            _uploadExcel(context);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1225F5),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+        const SizedBox(height: 24),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: selectedCycle == null
+                ? null
+                : () {
+                    _uploadExcel(context);
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: selectedCycle == null
+                  ? Colors.grey
+                  : const Color.fromARGB(255, 46, 62, 235),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 24,
+              ),
+              elevation: 6,
+              shadowColor: Colors.black45,
+            ),
+            icon: const Icon(
+              Icons.upload_file,
+              size: 24,
+              color: Colors.white,
+            ),
+            label: const Text(
+              'Cargar Archivo',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
             ),
           ),
-          icon: const Icon(Icons.upload_file),
-          label: const Text('Cargar Archivo'),
         ),
       ],
     );
