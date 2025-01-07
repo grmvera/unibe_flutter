@@ -126,7 +126,10 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                       'updated_at': DateTime.now(),
                     });
 
-                    //enlista a los usuarios existentes
+                    // Enviar correo al usuario actualizado
+                    await _sendEmail(email, "$firstName $lastName", idNumber);
+
+                    // Enlistar a los usuarios existentes
                     if (userDoc['email'] != email) {
                       usersToUpdate.add({
                         'uid': userDoc.id,
@@ -134,7 +137,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                       });
                     }
                   } else {
-                    // crear usuarios nuevos
+                    // Crear usuario nuevo
                     UserCredential userCredential = await FirebaseAuth.instance
                         .createUserWithEmailAndPassword(
                       email: email,
@@ -160,6 +163,9 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                         'isFirstLogin': true,
                         'status': true,
                       });
+
+                      // Enviar correo al usuario creado
+                      await _sendEmail(email, "$firstName $lastName", idNumber);
                     }
                   }
                 } else {
@@ -213,6 +219,30 @@ class _ExcelUploaderState extends State<ExcelUploader> {
     }
   }
 
+  Future<void> _sendEmail(
+      String email, String displayName, String idNumber) async {
+    final uri = Uri.parse(
+        'https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app'); 
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'displayName': displayName,
+          'idNumber': idNumber,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al enviar el correo: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error al enviar el correo: $e');
+    }
+  }
+
   Future<void> _updateEmailsInBulk(
       List<Map<String, String>> usersToUpdate) async {
     final uri = Uri.parse('https://updateemailsinbulk-vmgeqj7yha-uc.a.run.app');
@@ -223,7 +253,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'users': usersToUpdate}),
       );
-        print(jsonEncode({'users': usersToUpdate}));
+      print(jsonEncode({'users': usersToUpdate}));
 
       if (response.statusCode != 200) {
         throw Exception(
