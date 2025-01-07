@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +8,7 @@ import '../Widget/custom_drawer.dart';
 import '../Widget/custom_bottom_navigation_bar.dart';
 import '../login/users_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class UserCreationScreen extends StatefulWidget {
   const UserCreationScreen({Key? key}) : super(key: key);
@@ -52,9 +55,11 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
   Future<void> _createUser() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedProfile == 'Estudiante' && (_selectedCycle == null || _selectedCareer == null)) {
+    if (_selectedProfile == 'Estudiante' &&
+        (_selectedCycle == null || _selectedCareer == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecciona un período y una carrera')),
+        const SnackBar(
+            content: Text('Por favor, selecciona un período y una carrera')),
       );
       return;
     }
@@ -68,15 +73,19 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
       String firstName = _firstNameController.text.trim();
       String lastName = _lastNameController.text.trim();
       String email = _emailController.text.trim();
-      String role = _selectedProfile == 'Administrador' ? 'admin' : 'estudiante';
-      final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
+      String role =
+          _selectedProfile == 'Administrador' ? 'admin' : 'estudiante';
+      final usuarioProvider =
+          Provider.of<UsuarioProvider>(context, listen: false);
 
+      // Crear el usuario en Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: idNumber);
 
       User? user = userCredential.user;
 
       if (user != null) {
+        // Guardar los datos en Firestore
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'idNumber': idNumber,
           'firstName': firstName,
@@ -91,9 +100,30 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
           if (role == 'estudiante') 'semestre': _semesterController.text.trim(),
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario creado exitosamente')),
+        // Llamar a la Firebase Function para enviar el correo
+        final url = Uri.parse(
+            "https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app");
+
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': email,
+            'displayName': "$firstName $lastName",
+            'idNumber': idNumber,
+          }),
         );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Usuario creado y correo enviado')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Usuario creado, pero error al enviar correo')),
+          );
+        }
 
         _formKey.currentState!.reset();
         _idNumberController.clear();
@@ -261,7 +291,8 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (_selectedProfile == 'Estudiante' && (value == null || value.isEmpty)) {
+                      if (_selectedProfile == 'Estudiante' &&
+                          (value == null || value.isEmpty)) {
                         return 'Por favor, ingresa el semestre';
                       }
                       return null;

@@ -2,9 +2,11 @@ const functions = require("firebase-functions");
 const admin = require("./firebaseAdmin");
 const cors = require("cors")({ origin: true });
 const { updateEmailsInBulk } = require("./bulkFunctions");
+const { sendEmailOnUserCreation } = require("./emailService");
 
 // Exportar la función de actualización masiva
 exports.updateEmailsInBulk = updateEmailsInBulk;
+exports.sendEmailOnUserCreation = sendEmailOnUserCreation;
 
 // Función para actualizar un único correo
 exports.updateUserEmail = functions.https.onRequest((req, res) => {
