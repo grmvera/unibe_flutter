@@ -1,10 +1,10 @@
-import 'dart:convert';
-
+import 'dart:convert'; // Para decodificar JSON
+import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart'; // Para Web
+import 'package:camera/camera.dart'; // Para Móviles
 import 'student_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -14,40 +14,47 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+  // Controladores para móvil y web
+  CameraController? _cameraController; // Para móvil
+  QRViewController? _qrController; // Para web
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? _qrController;
-  bool isCameraPermissionGranted = false;
+  bool isCameraInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    requestCameraPermission().then((isGranted) {
-      if (isGranted) {
-        setState(() {
-          isCameraPermissionGranted = true;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Se necesita acceso a la cámara para continuar.')),
-        );
-      }
-    });
+    if (kIsWeb) {
+      // En la Web no es necesario inicializar la cámara manualmente
+      setState(() {
+        isCameraInitialized = true;
+      });
+    } else {
+      // Inicialización para móviles
+      initializeMobileCamera();
+    }
   }
 
-  Future<bool> requestCameraPermission() async {
-    var status = await Permission.camera.status;
-
-    if (status.isDenied) {
-      status = await Permission.camera.request();
+  Future<void> initializeMobileCamera() async {
+    final cameras = await availableCameras();
+    if (cameras.isNotEmpty) {
+      _cameraController = CameraController(
+        cameras.first,
+        ResolutionPreset.high,
+      );
+      await _cameraController!.initialize();
+      setState(() {
+        isCameraInitialized = true;
+      });
     }
-
-    return status.isGranted;
   }
 
   @override
   void dispose() {
-    _qrController?.dispose();
+    if (kIsWeb) {
+      _qrController?.dispose();
+    } else {
+      _cameraController?.dispose();
+    }
     super.dispose();
   }
 
@@ -55,91 +62,87 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Escanear Código')),
-      body: isCameraPermissionGranted
-          ? QRView(
-              key: _qrKey,
-              onQRViewCreated: _onQRViewCreated,
-            )
-          : const Center(
-              child: CircularProgressIndicator(),
-            ),
+      body: kIsWeb ? _buildWebScanner() : _buildMobileScanner(),
     );
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    _qrController = controller;
+  // Construir para Web
+  Widget _buildWebScanner() {
+    return QRView(
+      key: _qrKey,
+      onQRViewCreated: _onQRViewCreatedWeb,
+    );
+  }
 
+  // Construir para Móviles
+  Widget _buildMobileScanner() {
+    return isCameraInitialized
+        ? CameraPreview(_cameraController!)
+        : const Center(
+            child: CircularProgressIndicator(),
+          );
+  }
+
+  // Lógica para la Web
+  void _onQRViewCreatedWeb(QRViewController controller) {
+    _qrController = controller;
     _qrController!.scannedDataStream.listen((scanData) async {
       if (scanData.code != null) {
-        try {
-          // Decodifica el JSON del QR
-          final qrData = json.decode(scanData.code!);
-
-          // Verifica si el JSON contiene el campo `id`
-          if (qrData.containsKey('id')) {
-            final String idNumber = qrData['id'];
-
-            // Pausa la cámara para evitar múltiples lecturas
-            _qrController?.pauseCamera();
-
-            // Busca los datos del estudiante en Firebase
-            final studentData = await fetchStudentFromFirebase(idNumber);
-
-            if (studentData != null) {
-              // Navega hacia la pantalla de carnet con los datos del estudiante
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => StudentView(userData: studentData),
-                ),
-              ).then((_) {
-                // Reactiva la cámara al regresar
-                _qrController?.resumeCamera();
-              });
-            } else {
-              // Muestra un mensaje si no se encuentra el estudiante
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content:
-                        Text('Estudiante con ID $idNumber no encontrado.')),
-              );
-              _qrController
-                  ?.resumeCamera(); // Reactiva la cámara si no se encuentra el estudiante
-            }
-          } else {
-            // Muestra un error si el JSON no contiene el campo `id`
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('El QR no contiene un ID válido.')),
-            );
-          }
-        } catch (e) {
-          // Maneja errores si el QR no es un JSON válido
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al leer el QR: $e')),
-          );
-        }
+        _processQRCode(scanData.code!);
       }
     });
   }
 
-  // Función para obtener datos del estudiante desde Firebase
-  Future<Map<String, dynamic>?> fetchStudentFromFirebase(
-      String idNumber) async {
+  // Lógica para Móviles
+  void _onQRViewCreatedMobile(String scanData) {
+    _processQRCode(scanData);
+  }
+
+  // Lógica Común para Procesar el QR
+  void _processQRCode(String qrData) async {
     try {
-      // Obtén la referencia a la colección "users"
+      final data = json.decode(qrData);
+      if (data.containsKey('id')) {
+        final studentData = await fetchStudentFromFirebase(data['id']);
+        if (studentData != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => StudentView(userData: studentData),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Estudiante con ID ${data['id']} no encontrado.')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('El QR no contiene un ID válido.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al procesar el QR: $e')),
+      );
+    }
+  }
+
+  // Función para Buscar en Firebase
+  Future<Map<String, dynamic>?> fetchStudentFromFirebase(String idNumber) async {
+    try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('idNumber', isEqualTo: idNumber)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Retorna el primer documento encontrado
         return querySnapshot.docs.first.data();
       } else {
-        return null; // No se encontró el estudiante
+        return null;
       }
     } catch (e) {
-      print('Error al buscar estudiante: $e');
+      print('Error al buscar estudiante en Firebase: $e');
       return null;
     }
   }

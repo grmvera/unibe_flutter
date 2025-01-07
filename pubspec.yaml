@@ -44,6 +44,7 @@ dependencies:
   camera: 0.10.0+2
   permission_handler: ^10.0.0
   qr_code_scanner: ^1.0.0
+  universal_io: ^2.0.5
 
 dev_dependencies:
   flutter_test:
