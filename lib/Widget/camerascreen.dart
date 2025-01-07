@@ -15,6 +15,7 @@ class _CameraScreenState extends State<CameraScreen> {
   QRViewController? _qrController; // Controlador para Web y Android
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   bool isCameraInitialized = false;
+  String? statusMessage; // Mensaje para mostrar el estado al usuario
 
   @override
   void initState() {
@@ -34,11 +35,27 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Escanear Código')),
-      body: isCameraInitialized ? _buildQRScanner() : const Center(child: CircularProgressIndicator()),
+      body: Column(
+        children: [
+          Expanded(
+            flex: 5,
+            child: isCameraInitialized ? _buildQRScanner() : const Center(child: CircularProgressIndicator()),
+          ),
+          if (statusMessage != null)
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Text(
+                  statusMessage!,
+                  style: const TextStyle(fontSize: 16, color: Colors.red),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-  // Construcción del escáner QR para Web y Android
   Widget _buildQRScanner() {
     return QRView(
       key: _qrKey,
@@ -46,34 +63,42 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  // Lógica de creación del QRView
   void _onQRViewCreated(QRViewController controller) {
     _qrController = controller;
 
+    // Escucha el flujo de datos del escaneo
     _qrController!.scannedDataStream.listen((scanData) async {
       if (scanData.code != null && scanData.code!.isNotEmpty) {
-        _processQRCode(scanData.code!);
-        _qrController?.pauseCamera(); // Pausa para evitar múltiples escaneos
+        setState(() {
+          statusMessage = 'Código QR detectado: ${scanData.code}';
+        });
+        print('Código QR detectado: ${scanData.code}');
+        await _processQRCode(scanData.code!);
+        _qrController?.pauseCamera(); // Pausa para evitar múltiples lecturas
+      } else {
+        setState(() {
+          statusMessage = 'No se detectó ningún código QR.';
+        });
+        print('No se detectó ningún código QR');
       }
     });
   }
 
-  // Procesar el QR escaneado
-  void _processQRCode(String qrData) async {
+  Future<void> _processQRCode(String qrData) async {
     try {
-      // Decodifica el QR como JSON o texto
       Map<String, dynamic> data = {};
       try {
-        data = json.decode(qrData);
+        data = json.decode(qrData); // Intenta decodificar como JSON
       } catch (e) {
-        // Si no es JSON válido, asume que el QR contiene un ID directamente
-        data['id'] = qrData;
+        data['id'] = qrData; // Si falla, trata el QR como ID directo
       }
 
-      // Busca el ID en Firebase
       if (data.containsKey('id')) {
         final studentData = await fetchStudentFromFirebase(data['id']);
         if (studentData != null) {
+          setState(() {
+            statusMessage = null; // Limpia el mensaje antes de navegar
+          });
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -83,17 +108,22 @@ class _CameraScreenState extends State<CameraScreen> {
             _qrController?.resumeCamera(); // Reactiva la cámara al regresar
           });
         } else {
-          _showError('Estudiante con ID ${data['id']} no encontrado.');
+          setState(() {
+            statusMessage = 'Estudiante con ID ${data['id']} no encontrado.';
+          });
         }
       } else {
-        _showError('El QR no contiene un ID válido.');
+        setState(() {
+          statusMessage = 'El QR no contiene un ID válido.';
+        });
       }
     } catch (e) {
-      _showError('Error al procesar el QR: $e');
+      setState(() {
+        statusMessage = 'Error al procesar el QR: $e';
+      });
     }
   }
 
-  // Buscar estudiante en Firebase
   Future<Map<String, dynamic>?> fetchStudentFromFirebase(String idNumber) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
@@ -107,16 +137,10 @@ class _CameraScreenState extends State<CameraScreen> {
         return null;
       }
     } catch (e) {
-      _showError('Error al buscar estudiante en Firebase: $e');
+      setState(() {
+        statusMessage = 'Error al buscar en Firebase: $e';
+      });
       return null;
     }
-  }
-
-  // Mostrar errores con SnackBar
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-    _qrController?.resumeCamera(); // Reactiva la cámara tras el error
   }
 }
