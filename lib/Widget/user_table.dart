@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:unibe_app_control/admin/deletedusersScreen.dart';
 import 'package:unibe_app_control/admin/updae_user_screen.dart';
+
 
 class UserTable extends StatefulWidget {
   final TextEditingController searchController;
@@ -40,7 +42,9 @@ class _UserTableState extends State<UserTable> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 10),
         LayoutBuilder(
           builder: (context, constraints) {
             final isSmallScreen = constraints.maxWidth < 600;
@@ -53,6 +57,7 @@ class _UserTableState extends State<UserTable> {
                     ],
                   )
                 : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(flex: 2, child: _buildCycleDropdown()),
                       const SizedBox(width: 10),
@@ -61,10 +66,11 @@ class _UserTableState extends State<UserTable> {
                   );
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
         StreamBuilder<QuerySnapshot>(
           stream: _usersStream,
-          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
               return const Text('Algo salió mal');
             }
@@ -73,7 +79,8 @@ class _UserTableState extends State<UserTable> {
             }
 
             var filteredDocs = snapshot.data!.docs.where((document) {
-              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+              Map<String, dynamic> data =
+                  document.data()! as Map<String, dynamic>;
               final searchText = widget.searchController.text.toLowerCase();
               final idNumber = data['idNumber']?.toString().toLowerCase() ?? '';
               final cycleId = data['cycleId']?.toString();
@@ -82,7 +89,9 @@ class _UserTableState extends State<UserTable> {
               final matchesCycle =
                   selectedCycleId == null || cycleId == selectedCycleId;
 
-              return matchesSearch && matchesCycle;
+              final isNotDeleted = !(data['isDeleted'] ?? false);
+
+              return matchesSearch && matchesCycle && isNotDeleted;
             }).toList();
 
             int startIndex = _currentPage * _itemsPerPage;
@@ -95,7 +104,7 @@ class _UserTableState extends State<UserTable> {
             return Column(
               children: [
                 SizedBox(
-                  height: 450,
+                  height: 295,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: ConstrainedBox(
@@ -167,32 +176,50 @@ class _UserTableState extends State<UserTable> {
                                 ),
                               ),
                               DataCell(
-                                IconButton(
-                                  onPressed: () {
-                                    final userId = document.id;
-                                    final Map<String, dynamic> userData =
-                                        document.data() as Map<String, dynamic>;
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        final userId = document.id;
+                                        final Map<String, dynamic> userData =
+                                            document.data()
+                                                as Map<String, dynamic>;
 
-                                    if (userId.isNotEmpty && userData.isNotEmpty) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => UpdateUserScreen(
-                                            userId: userId,
-                                            userData: userData,
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Datos de usuario no son válidos.')),
-                                      );
-                                    }
-                                  },
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  tooltip: 'Actualizar Usuario',
+                                        if (userId.isNotEmpty &&
+                                            userData.isNotEmpty) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  UpdateUserScreen(
+                                                userId: userId,
+                                                userData: userData,
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Datos de usuario no son válidos.')),
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(Icons.edit,
+                                          color: Colors.blue),
+                                      tooltip: 'Actualizar Usuario',
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        _showDeleteConfirmationDialog(
+                                            document.id);
+                                      },
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      tooltip: 'Eliminar Usuario',
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -202,21 +229,71 @@ class _UserTableState extends State<UserTable> {
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Column(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: _currentPage > 0
-                          ? () => setState(() => _currentPage--)
-                          : null,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _currentPage > 0
+                              ? () => setState(() => _currentPage--)
+                              : null,
+                          icon: const Icon(Icons.arrow_back),
+                          label: const Text('Anterior'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Página ${_currentPage + 1}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          onPressed: endIndex < filteredDocs.length
+                              ? () => setState(() => _currentPage++)
+                              : null,
+                          icon: const Icon(Icons.arrow_forward),
+                          label: const Text('Siguiente'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text('Página ${_currentPage + 1}'),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward),
-                      onPressed: endIndex < filteredDocs.length
-                          ? () => setState(() => _currentPage++)
-                          : null,
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DeletedUsersScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                      ),
+                      child: const Text(
+                        'Ver Usuarios Eliminados',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),
@@ -226,6 +303,73 @@ class _UserTableState extends State<UserTable> {
         ),
       ],
     );
+  }
+
+  void _showDeleteConfirmationDialog(String userId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white,
+          title: const Row(
+            children: [
+              Icon(Icons.warning, color: Colors.red),
+              SizedBox(width: 10),
+              Text('Confirmar eliminación'),
+            ],
+          ),
+          content: const Text(
+            '¿Está seguro de que desea eliminar este usuario? Esta acción puede revertirse reactivando al usuario más tarde.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _setUserDeleted(userId);
+                Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _setUserDeleted(String userId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .update({'isDeleted': true, 'status': false});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuario eliminado correctamente.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar usuario: $e')),
+      );
+    }
   }
 
   Widget _buildCycleDropdown() {
