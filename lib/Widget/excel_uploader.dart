@@ -152,8 +152,9 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                     if (user != null) {
                       await FirebaseFirestore.instance
                           .collection('users')
-                          .doc(user.uid)
+                          .doc(user.uid) // Guardar con UID del usuario
                           .set({
+                        'uid': user.uid, // Agregar el UID al documento
                         'idNumber': idNumber,
                         'firstName': firstName,
                         'lastName': lastName,

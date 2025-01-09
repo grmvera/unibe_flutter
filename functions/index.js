@@ -3,8 +3,10 @@ const admin = require("./firebaseAdmin");
 const cors = require("cors")({ origin: true });
 const { updateEmailsInBulk } = require("./bulkFunctions");
 const { sendEmailOnUserCreation } = require("./emailService");
+const deleteUser = require("./deleteuser");
 
 // Exportar la función de actualización masiva
+exports.deleteUser = deleteUser.deleteUser;
 exports.updateEmailsInBulk = updateEmailsInBulk;
 exports.sendEmailOnUserCreation = sendEmailOnUserCreation;
 

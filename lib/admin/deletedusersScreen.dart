@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:unibe_app_control/Widget/custom_app_bar.dart';
 import 'package:unibe_app_control/Widget/custom_bottom_navigation_bar.dart';
 import 'package:unibe_app_control/Widget/custom_drawer.dart';
+import 'package:unibe_app_control/Widget/deleteuserdialog.dart';
 import 'package:unibe_app_control/login/users_provider.dart';
 
 class DeletedUsersScreen extends StatefulWidget {
@@ -106,7 +107,8 @@ class _DeletedUsersScreenState extends State<DeletedUsersScreen> {
                   }).toList();
 
                   if (filteredDocs.isEmpty) {
-                    return const Center(child: Text('No hay usuarios eliminados.'));
+                    return const Center(
+                        child: Text('No hay usuarios eliminados.'));
                   }
 
                   int startIndex = _currentPage * _itemsPerPage;
@@ -192,13 +194,46 @@ class _DeletedUsersScreenState extends State<DeletedUsersScreen> {
                                       ),
                                     ),
                                     DataCell(
-                                      IconButton(
-                                        icon: const Icon(Icons.restore,
-                                            color: Colors.green),
-                                        tooltip: 'Restablecer Usuario',
-                                        onPressed: () {
-                                          _restoreUser(document.id);
-                                        },
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.restore,
+                                                color: Colors.green),
+                                            tooltip: 'Restablecer Usuario',
+                                            onPressed: () {
+                                              _restoreUser(document.id);
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            tooltip: 'Borrar Usuario',
+                                            onPressed: () {
+                                              final userUid = data['uid'];
+                                              if (userUid != null &&
+                                                  userUid.isNotEmpty) {
+                                                showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return DeleteUserDialog(
+                                                      userId: document.id,
+                                                      userUid: userUid,
+                                                    );
+                                                  },
+                                                );
+                                                print(userUid);
+                                              } else {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          'Error: UID del usuario no encontrado')),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],

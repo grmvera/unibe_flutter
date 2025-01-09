@@ -87,6 +87,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
       if (user != null) {
         // Guardar los datos en Firestore
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'uid': user.uid,
           'idNumber': idNumber,
           'firstName': firstName,
           'lastName': lastName,
