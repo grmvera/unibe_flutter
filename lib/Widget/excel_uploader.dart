@@ -124,6 +124,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                       'cycleId': selectedCycle,
                       'status': true,
                       'updated_at': DateTime.now(),
+                      'isDeleted': false,
                       if (!userDoc.data().containsKey('lastAccess'))
                         'lastAccess': null,
                     });
@@ -165,6 +166,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                         'isFirstLogin': true,
                         'status': true,
                         'lastAccess': null,
+                        'isDeleted': false,
                       });
 
                       // Enviar correo al usuario creado
