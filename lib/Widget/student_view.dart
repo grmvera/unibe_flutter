@@ -26,7 +26,7 @@ class StudentView extends StatelessWidget {
       appBar: showAppBar
           ? AppBar(
               title: const Text('Carnet del Estudiante'),
-              backgroundColor: Colors.blue,
+              backgroundColor: Colors.white,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
