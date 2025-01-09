@@ -317,17 +317,48 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                         child: const Text('Desbloquear'),
                       ),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => StudentView(
-                              userData: widget.userData,
-                              showAppBar:
-                                  true, // Asegura que el AppBar siempre se muestre
-                            ),
-                          ),
-                        );
+                      onPressed: () async {
+                        try {
+                          // Busca el documento del usuario por su idNumber
+                          final querySnapshot = await FirebaseFirestore.instance
+                              .collection('users')
+                              .where('idNumber',
+                                  isEqualTo: widget.userData['idNumber'])
+                              .get();
+
+                          if (querySnapshot.docs.isNotEmpty) {
+                            final userDoc = querySnapshot.docs.first;
+                            // Añade el docId al objeto userData
+                            final updatedUserData = {
+                              ...widget.userData,
+                              'docId': userDoc.id,
+                            };
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => StudentView(
+                                  userData:
+                                      updatedUserData, // Envía el userData con el docId
+                                  showAppBar: true,
+                                ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Usuario no encontrado en la base de datos.'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('Error al buscar el usuario: $e')),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,

@@ -138,14 +138,15 @@ class _CameraScreenState extends State<CameraScreen> {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.data();
+        // Añadimos el docId al mapa de datos del usuario
+        final userData = querySnapshot.docs.first.data();
+        userData['docId'] = querySnapshot.docs.first.id;
+        return userData;
       } else {
         return null;
       }
     } catch (e) {
-      setState(() {
-        statusMessage = 'Error al buscar en Firebase: $e';
-      });
+      print('Error al buscar en Firebase: $e');
       return null;
     }
   }

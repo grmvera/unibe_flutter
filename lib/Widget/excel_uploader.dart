@@ -124,6 +124,8 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                       'cycleId': selectedCycle,
                       'status': true,
                       'updated_at': DateTime.now(),
+                      if (!userDoc.data().containsKey('lastAccess'))
+                        'lastAccess': null,
                     });
 
                     // Enviar correo al usuario actualizado
@@ -162,6 +164,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                         'information_input': DateTime.now(),
                         'isFirstLogin': true,
                         'status': true,
+                        'lastAccess': null,
                       });
 
                       // Enviar correo al usuario creado
@@ -221,8 +224,8 @@ class _ExcelUploaderState extends State<ExcelUploader> {
 
   Future<void> _sendEmail(
       String email, String displayName, String idNumber) async {
-    final uri = Uri.parse(
-        'https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app'); 
+    final uri =
+        Uri.parse('https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app');
 
     try {
       final response = await http.post(
