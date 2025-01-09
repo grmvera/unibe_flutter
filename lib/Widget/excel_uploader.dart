@@ -124,6 +124,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                       'cycleId': selectedCycle,
                       'status': true,
                       'updated_at': DateTime.now(),
+                      'isDeleted': false,
                       if (!userDoc.data().containsKey('lastAccess'))
                         'lastAccess': null,
                     });
@@ -151,8 +152,9 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                     if (user != null) {
                       await FirebaseFirestore.instance
                           .collection('users')
-                          .doc(user.uid)
+                          .doc(user.uid) // Guardar con UID del usuario
                           .set({
+                        'uid': user.uid, // Agregar el UID al documento
                         'idNumber': idNumber,
                         'firstName': firstName,
                         'lastName': lastName,
@@ -165,6 +167,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
                         'isFirstLogin': true,
                         'status': true,
                         'lastAccess': null,
+                        'isDeleted': false,
                       });
 
                       // Enviar correo al usuario creado
