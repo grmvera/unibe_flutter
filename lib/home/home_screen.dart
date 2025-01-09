@@ -68,10 +68,17 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final bool isStudent = usuarioProvider.userData!['role'] == 'estudiante';
+
+    // Configuración de pantallas
     final List<Widget> screens = [
-      usuarioProvider.userData!['role'] == 'admin'
-          ? _buildAdminView()
-          : StudentView(userData: usuarioProvider.userData!),
+      isStudent
+          ? StudentView(
+              userData: usuarioProvider.userData!,
+              showAppBar: false, 
+              showDetails: false,
+            )
+          : _buildAdminView(),
       const Center(
         child: Text('Escanear QR', style: TextStyle(fontSize: 20)),
       ),
@@ -82,13 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       key: scaffoldKey,
-      appBar: usuarioProvider.userData != null
-          ? CustomAppBar(
-              userName: usuarioProvider.userData!['firstName'] ?? 'Usuario',
-              userRole: usuarioProvider.userData!['role'] ?? 'Sin Rol',
-              scaffoldKey: scaffoldKey,
-            )
-          : null,
+      appBar: CustomAppBar(
+        userName: usuarioProvider.userData!['firstName'] ?? 'Usuario',
+        userRole: usuarioProvider.userData!['role'] ?? 'Sin Rol',
+        scaffoldKey: scaffoldKey,
+      ),
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
       body: screens[_selectedIndex],
       bottomNavigationBar: CustomBottomNavigationBar(

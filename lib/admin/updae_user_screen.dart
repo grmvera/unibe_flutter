@@ -64,7 +64,8 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al enviar correo de restablecimiento: $e')),
+        SnackBar(
+            content: Text('Error al enviar correo de restablecimiento: $e')),
       );
     }
   }
@@ -169,8 +170,7 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
   Future<void> updateEmailInAuth(String userId, String newEmail) async {
     try {
       final response = await http.post(
-        Uri.parse(
-            'https://updateuseremail-vmgeqj7yha-uc.a.run.app'),
+        Uri.parse('https://updateuseremail-vmgeqj7yha-uc.a.run.app'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'uid': userId,
@@ -321,13 +321,10 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => Scaffold(
-                              appBar: AppBar(
-                                title: const Text('Carnet del Estudiante'),
-                              ),
-                              body: Center(
-                                child: StudentView(userData: widget.userData),
-                              ),
+                            builder: (context) => StudentView(
+                              userData: widget.userData,
+                              showAppBar:
+                                  true, // Asegura que el AppBar siempre se muestre
                             ),
                           ),
                         );
@@ -352,7 +349,8 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                     if (email.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('El campo de correo no puede estar vacío')),
+                            content: Text(
+                                'El campo de correo no puede estar vacío')),
                       );
                       return;
                     }
