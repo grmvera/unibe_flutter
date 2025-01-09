@@ -39,7 +39,9 @@ class _CameraScreenState extends State<CameraScreen> {
         children: [
           Expanded(
             flex: 5,
-            child: isCameraInitialized ? _buildQRScanner() : const Center(child: CircularProgressIndicator()),
+            child: isCameraInitialized
+                ? _buildQRScanner()
+                : const Center(child: CircularProgressIndicator()),
           ),
           if (statusMessage != null)
             Expanded(
@@ -102,7 +104,10 @@ class _CameraScreenState extends State<CameraScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => StudentView(userData: studentData),
+              builder: (context) => StudentView(
+                userData: studentData,
+                showAppBar: true, // Asegúrate de mostrar el AppBar al escanear
+              ),
             ),
           ).then((_) {
             _qrController?.resumeCamera(); // Reactiva la cámara al regresar
@@ -124,7 +129,8 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> fetchStudentFromFirebase(String idNumber) async {
+  Future<Map<String, dynamic>?> fetchStudentFromFirebase(
+      String idNumber) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -132,14 +138,15 @@ class _CameraScreenState extends State<CameraScreen> {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.data();
+        // Añadimos el docId al mapa de datos del usuario
+        final userData = querySnapshot.docs.first.data();
+        userData['docId'] = querySnapshot.docs.first.id;
+        return userData;
       } else {
         return null;
       }
     } catch (e) {
-      setState(() {
-        statusMessage = 'Error al buscar en Firebase: $e';
-      });
+      print('Error al buscar en Firebase: $e');
       return null;
     }
   }
