@@ -40,8 +40,10 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
 
   Future<void> _fetchCycles() async {
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('cycles').get();
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('cycles')
+          .where('isActive', isEqualTo: true)
+          .get();
       setState(() {
         _cycles = snapshot.docs;
       });

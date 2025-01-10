@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:unibe_app_control/admin/deletedusersScreen.dart';
 import 'package:unibe_app_control/admin/updae_user_screen.dart';
 
-
 class UserTable extends StatefulWidget {
   final TextEditingController searchController;
 
@@ -397,7 +396,8 @@ class _UserTableState extends State<UserTable> {
               value: null,
               child: Text('Todos los ciclos'),
             ),
-            ...cycles.map((cycle) {
+            ...cycles.where((cycle) => cycle['isActive'] == true).map((cycle) {
+              // Filtrar solo los ciclos activos
               return DropdownMenuItem<String>(
                 value: cycle.id,
                 child: Text(cycle['name']),

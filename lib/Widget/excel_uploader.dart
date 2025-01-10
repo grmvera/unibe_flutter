@@ -26,8 +26,10 @@ class _ExcelUploaderState extends State<ExcelUploader> {
 
   Future<void> _fetchCycles() async {
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('cycles').get();
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('cycles')
+          .where('isActive', isEqualTo: true)
+          .get();
       setState(() {
         cycles = snapshot.docs;
       });
