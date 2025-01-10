@@ -38,18 +38,23 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
   void _startAutoDeactivateTimer() {
     _timer = Timer.periodic(const Duration(hours: 1), (timer) async {
       final now = DateTime.now();
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('cycles')
-          .where('isActive', isEqualTo: true)
-          .get();
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('cycles').get();
 
       for (var doc in querySnapshot.docs) {
         final endDate = DateTime.parse(doc['endDate']);
-        if (now.isAfter(endDate)) {
+        final isActive = doc['isActive'] ?? true;
+
+        if (now.isAfter(endDate) && isActive) {
           await FirebaseFirestore.instance
               .collection('cycles')
               .doc(doc.id)
               .update({'isActive': false});
+        } else if (now.isBefore(endDate) && !isActive) {
+          await FirebaseFirestore.instance
+              .collection('cycles')
+              .doc(doc.id)
+              .update({'isActive': true});
         }
       }
     });
@@ -89,11 +94,14 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
     });
 
     try {
+      final now = DateTime.now();
+      final isActive = now.isBefore(endDate!);
+
       await FirebaseFirestore.instance.collection('cycles').add({
         'name': name,
         'startDate': startDate!.toIso8601String(),
         'endDate': endDate!.toIso8601String(),
-        'isActive': true, // Agregar estado inicial del ciclo
+        'isActive': isActive, // Validar estado inicial del ciclo
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ciclo creado exitosamente')),
@@ -314,17 +322,15 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
                             children: [
                               IconButton(
                                 icon: Icon(
-                                  isActive
-                                      ? Icons.toggle_off
-                                      : Icons.toggle_on,
-                                  color: isActive ? Colors.red : Colors.green,
+                                  isActive ? Icons.toggle_off : Icons.toggle_on,
+                                  color: isActive ? Colors.green : Colors.red,
                                 ),
                                 onPressed: () =>
                                     _toggleCycleStatus(cycle.id, isActive),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete,
-                                    color: Colors.red),
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () async {
                                   await FirebaseFirestore.instance
                                       .collection('cycles')
