@@ -4,11 +4,13 @@ const cors = require("cors")({ origin: true });
 const { updateEmailsInBulk } = require("./bulkFunctions");
 const { sendEmailOnUserCreation } = require("./emailService");
 const deleteUser = require("./deleteuser");
+const updateCyclesAndUsers = require("./updatecyclesandusers");
 
 // Exportar la función de actualización masiva
 exports.deleteUser = deleteUser.deleteUser;
 exports.updateEmailsInBulk = updateEmailsInBulk;
 exports.sendEmailOnUserCreation = sendEmailOnUserCreation;
+exports.updateCyclesAndUsers = updateCyclesAndUsers.updateCyclesAndUsers;
 
 // Función para actualizar un único correo
 exports.updateUserEmail = functions.https.onRequest((req, res) => {
