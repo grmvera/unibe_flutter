@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../Widget/custom_app_bar.dart';
 import '../Widget/custom_drawer.dart';
 import '../Widget/custom_bottom_navigation_bar.dart';
@@ -20,6 +21,39 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isLoading = false;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoDeactivateTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void _startAutoDeactivateTimer() {
+    _timer = Timer.periodic(const Duration(hours: 1), (timer) async {
+      final now = DateTime.now();
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('cycles')
+          .where('isActive', isEqualTo: true)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        final endDate = DateTime.parse(doc['endDate']);
+        if (now.isAfter(endDate)) {
+          await FirebaseFirestore.instance
+              .collection('cycles')
+              .doc(doc.id)
+              .update({'isActive': false});
+        }
+      }
+    });
+  }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
@@ -59,6 +93,7 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
         'name': name,
         'startDate': startDate!.toIso8601String(),
         'endDate': endDate!.toIso8601String(),
+        'isActive': true, // Agregar estado inicial del ciclo
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ciclo creado exitosamente')),
@@ -76,6 +111,26 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _toggleCycleStatus(String cycleId, bool isActive) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('cycles')
+          .doc(cycleId)
+          .update({'isActive': !isActive});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isActive
+              ? 'Ciclo desactivado exitosamente'
+              : 'Ciclo activado exitosamente'),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al actualizar el ciclo')),
+      );
     }
   }
 
@@ -246,25 +301,42 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
                     itemCount: cycles.length,
                     itemBuilder: (context, index) {
                       final cycle = cycles[index];
+                      final isActive = cycle['isActive'] ?? true;
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
                           title: Text(cycle['name']),
                           subtitle: Text(
-                            'Desde: ${cycle['startDate'].toString().split('T')[0]}\nHasta: ${cycle['endDate'].toString().split('T')[0]}',
+                            'Desde: ${cycle['startDate'].toString().split('T')[0]}\nHasta: ${cycle['endDate'].toString().split('T')[0]}\nEstado: ${isActive ? 'Activo' : 'Inactivo'}',
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () async {
-                              await FirebaseFirestore.instance
-                                  .collection('cycles')
-                                  .doc(cycle.id)
-                                  .delete();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Ciclo eliminado')),
-                              );
-                            },
+                          trailing: Wrap(
+                            spacing: 8, // Espaciado entre botones
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  isActive
+                                      ? Icons.toggle_off
+                                      : Icons.toggle_on,
+                                  color: isActive ? Colors.red : Colors.green,
+                                ),
+                                onPressed: () =>
+                                    _toggleCycleStatus(cycle.id, isActive),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.red),
+                                onPressed: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('cycles')
+                                      .doc(cycle.id)
+                                      .delete();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Ciclo eliminado')),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
