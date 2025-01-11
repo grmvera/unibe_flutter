@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:unibe_app_control/Widget/camerascreen.dart';
+import 'package:unibe_app_control/admin/profilescreen.dart';
+
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -17,13 +19,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: (index) {
         if (index == 1) {
-          // Si la pestaña "Escanear" es seleccionada, abre la pantalla de la cámara
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CameraScreen()),
+            MaterialPageRoute(builder: (context) => const CameraScreen()),
+          );
+        } else if (index == 2) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
           );
         } else {
-          // Si no, llama a la función onTap pasada como parámetro
           onTap(index);
         }
       },
