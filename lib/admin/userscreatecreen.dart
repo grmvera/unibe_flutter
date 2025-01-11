@@ -99,6 +99,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
           'isFirstLogin': true,
           'created': usuarioProvider.userData!['firstName'].toString(),
           'isDeleted': false,
+          'profileImage': '',
           if (role == 'estudiante') 'cycleId': _selectedCycle,
           if (role == 'estudiante') 'career': _selectedCareer,
           if (role == 'estudiante') 'semestre': _semesterController.text.trim(),
