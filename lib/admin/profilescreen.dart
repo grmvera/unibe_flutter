@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
 import 'dart:io' as io;
 import 'package:flutter/foundation.dart'; // Para usar kIsWeb
-import 'dart:html' as html; // Solo para Flutter Web
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -40,6 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchCycleData() async {
     final usuarioProvider =
         Provider.of<UsuarioProvider>(context, listen: false);
+    print("Datos del usuario: ${usuarioProvider.userData}");
     final String? cycleId = usuarioProvider.userData?['cycleId'];
 
     if (cycleId != null) {
@@ -79,13 +78,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchProfileImage() async {
-    final usuarioProvider =
-        Provider.of<UsuarioProvider>(context, listen: false);
-    final String? imageUrl = usuarioProvider.userData?['profileImage'];
-    if (imageUrl != null) {
-      setState(() {
-        _profileImageUrl = imageUrl;
-      });
+    try {
+      final usuarioProvider =
+          Provider.of<UsuarioProvider>(context, listen: false);
+
+      if (usuarioProvider.userData == null) {
+        print('Error: usuarioProvider.userData es null.');
+        return;
+      }
+
+      final String? imageUrl = usuarioProvider.userData?['profileImage'];
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        setState(() {
+          _profileImageUrl = imageUrl;
+        });
+      } else {
+        print('Advertencia: imageUrl es null o está vacío.');
+      }
+    } catch (e, stackTrace) {
+      print('Error al cargar la imagen de perfil: $e');
+      print('Detalles del error: $stackTrace');
     }
   }
 
@@ -108,8 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final usuarioProvider = Provider.of<UsuarioProvider>(context);
-    final userData =
-        usuarioProvider.userData ?? {}; // Proporciona un mapa vacío si es null
+    final userData = usuarioProvider.userData ?? {};
 
     return Scaffold(
       key: _scaffoldKey,
@@ -227,191 +238,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     try {
-      if (kIsWeb) {
-        final html.FileUploadInputElement uploadInput =
-            html.FileUploadInputElement();
-        uploadInput.accept = 'image/*';
-        uploadInput.click();
+      // Selección de imagen
+      final picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
-        uploadInput.onChange.listen((event) async {
-          final html.File? file = uploadInput.files?.first;
-          if (file != null) {
-            final reader = html.FileReader();
-            reader.readAsArrayBuffer(file);
-
-            reader.onLoad.listen((event) async {
-              final Uint8List fileData = reader.result as Uint8List;
-              final String storagePath = 'profile_images/$userId';
-              final ref = FirebaseStorage.instance.ref(storagePath);
-              final uploadTask = ref.putData(fileData);
-
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (BuildContext context) {
-                  return UploadProgressDialog(uploadTask: uploadTask);
-                },
-              );
-
-              await uploadTask.whenComplete(() async {
-                final String downloadUrl = await ref.getDownloadURL();
-                print("URL obtenida: $downloadUrl");
-
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(userId)
-                    .update({'profileImage': downloadUrl});
-
-                setState(() {
-                  _profileImageUrl = downloadUrl;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Imagen actualizada correctamente.')),
-                );
-              });
-            });
-
-            reader.onError.listen((error) {
-              print('Error al leer el archivo: $error');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Error al leer el archivo.')),
-              );
-            });
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
-            );
-          }
-        });
-      } else {
-        final picker = ImagePicker();
-        final XFile? image =
-            await picker.pickImage(source: ImageSource.gallery);
-
-        if (image != null) {
-          final io.File file = io.File(image.path);
-          final String storagePath = 'profile_images/$userId';
-          final ref = FirebaseStorage.instance.ref(storagePath);
-          final uploadTask = ref.putFile(file);
-
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return UploadProgressDialog(uploadTask: uploadTask);
-            },
-          );
-
-          await uploadTask.whenComplete(() async {
-            final String downloadUrl = await ref.getDownloadURL();
-            print("URL obtenida: $downloadUrl");
-
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .update({'profileImage': downloadUrl});
-
-            setState(() {
-              _profileImageUrl = downloadUrl;
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Imagen actualizada correctamente.')),
-            );
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
-          );
-        }
+      if (image == null) {
+        print("No se seleccionó ninguna imagen.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
+        );
+        return;
       }
-    } catch (e, stackTrace) {
+
+      print("Imagen seleccionada: ${image.path}");
+
+      // Verifica si el archivo existe
+      final file = io.File(image.path);
+      if (!file.existsSync()) {
+        print("Error: El archivo seleccionado no existe.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: El archivo no existe.')),
+        );
+        return;
+      }
+
+      // Subir imagen
+      final String fileName = "profile_images/$userId.png";
+      final ref = FirebaseStorage.instance.ref(fileName);
+
+      print("Intentando subir a: $fileName");
+
+      final uploadTask = ref.putFile(file);
+
+      // Escucha el progreso
+      uploadTask.snapshotEvents.listen((snapshot) {
+        if (snapshot.state == TaskState.running) {
+          final progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          print("Progreso de subida: $progress%");
+        }
+      });
+
+      // Completa la subida
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      print("URL del archivo subido: $downloadUrl");
+
+      // Guarda la URL en Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .update({'profileImage': downloadUrl});
+
+      setState(() {
+        _profileImageUrl = downloadUrl;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Imagen actualizada correctamente.')),
+      );
+    } catch (e) {
       print('Error al subir la imagen: $e');
-      print('Detalles del error: $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Error al actualizar la imagen de perfil.')),
       );
     }
-  }
-}
-
-class UploadProgressDialog extends StatefulWidget {
-  final UploadTask uploadTask;
-
-  const UploadProgressDialog({required this.uploadTask, Key? key})
-      : super(key: key);
-
-  @override
-  _UploadProgressDialogState createState() => _UploadProgressDialogState();
-}
-
-class _UploadProgressDialogState extends State<UploadProgressDialog> {
-  double _progress = 0.0;
-  bool _isCancelled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _startMonitoringProgress();
-  }
-
-  void _startMonitoringProgress() {
-    widget.uploadTask.snapshotEvents.listen(
-      (snapshot) {
-        if (_isCancelled) return;
-
-        if (snapshot.state == TaskState.running) {
-          setState(() {
-            _progress = snapshot.bytesTransferred / snapshot.totalBytes;
-          });
-        } else if (snapshot.state == TaskState.success) {
-          Navigator.of(context).pop(); // Cierra el diálogo al completar
-        } else if (snapshot.state == TaskState.error) {
-          Navigator.of(context).pop(); // Cierra el diálogo en caso de error
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error al subir la imagen.')),
-          );
-        }
-      },
-      onError: (error) {
-        Navigator.of(context).pop(); // Asegura que el diálogo se cierra
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error durante la carga de la imagen.')),
-        );
-      },
-    );
-  }
-
-  void _cancelUpload() {
-    widget.uploadTask.cancel();
-    setState(() {
-      _isCancelled = true;
-    });
-    Navigator.of(context).pop(); // Cierra el diálogo al cancelar
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Subiendo imagen...'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LinearProgressIndicator(value: _progress),
-          const SizedBox(height: 16),
-          Text('Progreso: ${(_progress * 100).toStringAsFixed(2)}%'),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: _cancelUpload,
-          child: const Text('Cancelar'),
-        ),
-      ],
-    );
   }
 }
