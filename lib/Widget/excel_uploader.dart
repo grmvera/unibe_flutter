@@ -253,7 +253,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
 
   Future<void> _updateEmailsInBulk(
       List<Map<String, String>> usersToUpdate) async {
-    final uri = Uri.parse('https://updateemailsinbulk-vmgeqj7yha-uc.a.run.app');
+    final uri = Uri.parse('https://us-central1-controlacceso-403b0.cloudfunctions.net/updateEmailsInBulk');
 
     try {
       final response = await http.post(

@@ -170,7 +170,7 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
   Future<void> updateEmailInAuth(String userId, String newEmail) async {
     try {
       final response = await http.post(
-        Uri.parse('https://updateuseremail-vmgeqj7yha-uc.a.run.app'),
+        Uri.parse('https://us-central1-controlacceso-403b0.cloudfunctions.net/updateUserEmail'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'uid': userId,
