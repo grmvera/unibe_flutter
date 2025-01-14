@@ -85,7 +85,7 @@ class CustomDrawer extends StatelessWidget {
   }
 
   void _launchURL(BuildContext context) async {
-    const url = 'https://flutter.dev';
+    const url = 'https://acad.unibe.edu.ec/';
     final Uri uri = Uri.parse(url);
 
     try {
