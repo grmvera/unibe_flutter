@@ -21,11 +21,14 @@ class DeleteUserDialog extends StatelessWidget {
     }
 
     try {
-      const String url = 'https://deleteuser-vmgeqj7yha-uc.a.run.app';
+      const String url = 'https://us-central1-controlacceso-403b0.cloudfunctions.net/deleteUser';
 
       final response = await http.post(
         Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Origin': 'your-origin-domain.com', // Si el servidor requiere un origen específico.
+        },
         body: jsonEncode(<String, String>{'uid': userUid}),
       );
 
