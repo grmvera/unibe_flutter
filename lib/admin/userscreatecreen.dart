@@ -109,7 +109,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
 
         // Llamar a la Firebase Function para enviar el correo
         final url = Uri.parse(
-            "https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app");
+            "https://us-central1-controlacceso-403b0.cloudfunctions.net/sendEmailOnUserCreation");
 
         final response = await http.post(
           url,

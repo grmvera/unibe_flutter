@@ -230,7 +230,7 @@ class _ExcelUploaderState extends State<ExcelUploader> {
   Future<void> _sendEmail(
       String email, String displayName, String idNumber) async {
     final uri =
-        Uri.parse('https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app');
+        Uri.parse('https://us-central1-controlacceso-403b0.cloudfunctions.net/sendEmailOnUserCreation');
 
     try {
       final response = await http.post(
