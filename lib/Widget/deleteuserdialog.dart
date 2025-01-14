@@ -21,11 +21,14 @@ class DeleteUserDialog extends StatelessWidget {
     }
 
     try {
-      const String url = 'https://deleteuser-vmgeqj7yha-uc.a.run.app';
+      const String url = 'https://us-central1-controlacceso-403b0.cloudfunctions.net/deleteUser';
 
       final response = await http.post(
         Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Origin': 'your-origin-domain.com', // Si el servidor requiere un origen específico.
+        },
         body: jsonEncode(<String, String>{'uid': userUid}),
       );
 
@@ -52,62 +55,83 @@ class DeleteUserDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      title: const Row(
-        children: [
-          Icon(Icons.warning, color: Colors.red),
-          SizedBox(width: 10),
-          Text(
-            'Confirmar Eliminación',
-            style: TextStyle(fontWeight: FontWeight.bold),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
           ),
-        ],
-      ),
-      content: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16),
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.red),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  'Confirmar Eliminación',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: constraints.maxWidth < 600 ? 18 : 22,
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 15),
-          Icon(Icons.delete_forever, size: 40, color: Colors.red),
-        ],
-      ),
-      actionsAlignment: MainAxisAlignment.center,
-      actions: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
+                ),
+              ),
+              const SizedBox(height: 15),
+              Icon(
+                Icons.delete_forever,
+                size: constraints.maxWidth < 600 ? 30 : 40,
+                color: Colors.red,
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                textStyle: TextStyle(
+                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+              child: const Text('Cancelar'),
             ),
-          ),
-          onPressed: () {
-            Navigator.of(context).pop(); // Cierra el diálogo
-          },
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                textStyle: TextStyle(
+                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
+                ),
+              ),
+              onPressed: () {
+                _deleteUser(context, userUid); // Pasar el UID al método
+              },
+              child: const Text(
+                'Eliminar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
-          ),
-          onPressed: () {
-            _deleteUser(context, userUid); // Pasar el UID al método
-          },
-          child: const Text(
-            'Eliminar',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

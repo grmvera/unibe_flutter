@@ -308,48 +308,67 @@ class _UserTableState extends State<UserTable> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          backgroundColor: Colors.white,
-          title: const Row(
-            children: [
-              Icon(Icons.warning, color: Colors.red),
-              SizedBox(width: 10),
-              Text('Confirmar eliminación'),
-            ],
-          ),
-          content: const Text(
-            '¿Está seguro de que desea eliminar este usuario? Esta acción puede revertirse reactivando al usuario más tarde.',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _setUserDeleted(userId);
-                Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              backgroundColor: Colors.white,
+              title: Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.red),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      'Confirmar eliminación',
+                      style: TextStyle(
+                        fontSize: constraints.maxWidth < 600 ? 18 : 22,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                '¿Está seguro de que desea eliminar este usuario? Esta acción puede revertirse reactivando al usuario más tarde.',
+                style: TextStyle(
+                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
                 ),
-                textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              child: const Text('Eliminar'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey[600],
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: constraints.maxWidth < 600 ? 14 : 16,
+                    ),
+                  ),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _setUserDeleted(userId);
+                    Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: constraints.maxWidth < 600 ? 14 : 16,
+                    ),
+                  ),
+                  child: const Text('Eliminar'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

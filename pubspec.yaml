@@ -45,6 +45,11 @@ dependencies:
   permission_handler: ^10.0.0
   qr_code_scanner: ^1.0.0
   universal_io: ^2.0.5
+  firebase_storage: ^11.0.0
+  image_picker: ^0.8.7+5
+  image: ^3.0.1
+  url_launcher: ^6.0.20
+  android_intent_plus: ^2.0.6
 
 dev_dependencies:
   flutter_test:

@@ -80,6 +80,19 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
       final usuarioProvider =
           Provider.of<UsuarioProvider>(context, listen: false);
 
+      // Verificar si el correo ya está registrado
+      final List<String> signInMethods =
+          await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+
+      if (signInMethods.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'El correo electrónico ya está registrado. Por favor, utiliza uno diferente.')),
+        );
+        return; // Salir del flujo si el correo ya existe
+      }
+
       // Crear el usuario en Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: idNumber);
@@ -99,6 +112,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
           'isFirstLogin': true,
           'created': usuarioProvider.userData!['firstName'].toString(),
           'isDeleted': false,
+          'profileImage': '',
           if (role == 'estudiante') 'cycleId': _selectedCycle,
           if (role == 'estudiante') 'career': _selectedCareer,
           if (role == 'estudiante') 'semestre': _semesterController.text.trim(),
@@ -108,7 +122,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
 
         // Llamar a la Firebase Function para enviar el correo
         final url = Uri.parse(
-            "https://sendemailonusercreation-vmgeqj7yha-uc.a.run.app");
+            "https://us-central1-controlacceso-403b0.cloudfunctions.net/sendEmailOnUserCreation");
 
         final response = await http.post(
           url,
@@ -131,6 +145,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
           );
         }
 
+        // Limpiar formulario
         _formKey.currentState!.reset();
         _idNumberController.clear();
         _firstNameController.clear();
@@ -143,9 +158,21 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
           _selectedCareer = null;
         });
       }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'El correo ya está en uso. No se pudo completar la creación.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error de Firebase: ${e.message}')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error inesperado: $e')),
       );
     } finally {
       setState(() {

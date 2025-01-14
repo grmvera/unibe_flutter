@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '715882159378',
     projectId: 'controlacceso-403b0',
     databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.appspot.com',
+    storageBucket: 'controlacceso-403b0.firebasestorage.app', // Cambiado aquí
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
