@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unibe_app_control/login/login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Map<String, dynamic> userData;
@@ -14,7 +15,6 @@ class CustomDrawer extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Cabecera del Drawer
           UserAccountsDrawerHeader(
             accountName: Text(
               '${userData['firstName']} ${userData['lastName']}',
@@ -41,12 +41,10 @@ class CustomDrawer extends StatelessWidget {
               ),
             ),
           ),
-          // Opciones del Drawer
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // Botón para ir al sitio web
                 ListTile(
                   leading:
                       const Icon(Icons.open_in_browser, color: Colors.indigo),
@@ -59,7 +57,6 @@ class CustomDrawer extends StatelessWidget {
               ],
             ),
           ),
-          // Botón para cerrar sesión en la parte inferior
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListTile(
@@ -72,7 +69,7 @@ class CustomDrawer extends StatelessWidget {
                 FirebaseAuth.instance.signOut();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
-                ); // Redirige al login
+                );
               },
               tileColor: Colors.grey[200],
               textColor: Colors.black,
@@ -88,14 +85,21 @@ class CustomDrawer extends StatelessWidget {
   }
 
   void _launchURL(BuildContext context) async {
-    const url = 'https://acad.unibe.edu.ec/';
+    const url = 'https://flutter.dev';
     final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri,
+            mode: LaunchMode
+                .externalApplication);
+      } else {
+        throw 'No se pudo abrir la URL';
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se puede abrir $url'),
+        SnackBar(
+          content: Text('Error al abrir la URL: $e'),
           backgroundColor: Colors.red,
         ),
       );
