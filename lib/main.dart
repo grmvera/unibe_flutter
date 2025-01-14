@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:unibe_app_control/home/home_screen.dart';
 import 'package:unibe_app_control/login/login_screen.dart';
 import 'package:unibe_app_control/login/users_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,16 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         debugShowCheckedModeBanner: false,
+        // Agregar soporte para localizaciones
+        supportedLocales: const [
+          Locale('en', 'US'), // Inglés
+          Locale('es', 'ES'), // Español
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: const InitialScreen(),
       ),
     );
