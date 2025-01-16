@@ -2,21 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:unibe_app_control/firebase_options.dart';
-import 'package:unibe_app_control/home/home_screen.dart';
 import 'package:unibe_app_control/login/login_screen.dart';
 import 'package:unibe_app_control/login/users_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Solución para evitar inicialización duplicada
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-
   runApp(MyApp());
 }
 
@@ -48,7 +44,6 @@ class MyApp extends StatelessWidget {
 
 class InitialScreen extends StatelessWidget {
   const InitialScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
