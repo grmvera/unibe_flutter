@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:io' as io;
-import 'package:flutter/foundation.dart'; // Para usar kIsWeb
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -22,11 +21,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 2;
 
-  // Variables para el ciclo y cuenta regresiva
   late Timer _timer;
   Duration _timeLeft = Duration.zero;
   Map<String, dynamic>? _cycleData;
   String? _profileImageUrl;
+  String? _selectedGender; // Variable para manejar el género seleccionado
 
   @override
   void initState() {
@@ -38,7 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchCycleData() async {
     final usuarioProvider =
         Provider.of<UsuarioProvider>(context, listen: false);
-    print("Datos del usuario: ${usuarioProvider.userData}");
     final String? cycleId = usuarioProvider.userData?['cycleId'];
 
     if (cycleId != null) {
@@ -59,7 +57,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _timeLeft = Duration.zero;
             }
 
-            // Inicia el temporizador para actualizar cada segundo
             _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
               setState(() {
                 if (_timeLeft.inSeconds > 0) {
@@ -81,23 +78,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final usuarioProvider =
           Provider.of<UsuarioProvider>(context, listen: false);
-
-      if (usuarioProvider.userData == null) {
-        print('Error: usuarioProvider.userData es null.');
-        return;
-      }
-
       final String? imageUrl = usuarioProvider.userData?['profileImage'];
+      final String? gender = usuarioProvider.userData?['gender'];
+
       if (imageUrl != null && imageUrl.isNotEmpty) {
         setState(() {
           _profileImageUrl = imageUrl;
         });
-      } else {
-        print('Advertencia: imageUrl es null o está vacío.');
       }
-    } catch (e, stackTrace) {
-      print('Error al cargar la imagen de perfil: $e');
-      print('Detalles del error: $stackTrace');
+
+      if (gender != null && gender.isNotEmpty) {
+        setState(() {
+          _selectedGender = gender;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar datos del perfil: $e');
     }
   }
 
@@ -113,7 +109,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     if (index != 2) {
-      Navigator.pop(context); // Navega fuera de la pantalla de perfil
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _updateGender(String gender) async {
+    try {
+      final usuarioProvider =
+          Provider.of<UsuarioProvider>(context, listen: false);
+      final userId = usuarioProvider.userData?['uid'];
+
+      if (userId == null) {
+        throw Exception("ID de usuario no encontrado.");
+      }
+
+      // Verificar si el documento existe y si contiene el campo "gender"
+      final documentSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (documentSnapshot.exists) {
+        // Si el documento existe, actualiza el campo "gender"
+        await FirebaseFirestore.instance.collection('users').doc(userId).set(
+            {'gender': gender},
+            SetOptions(merge: true)); // Crea o actualiza el campo
+      } else {
+        // Si el documento no existe (caso raro), lanza una excepción
+        throw Exception("El documento del usuario no existe en Firestore.");
+      }
+
+      // Actualiza el estado local
+      setState(() {
+        _selectedGender = gender;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Género actualizado correctamente.')),
+      );
+    } catch (e) {
+      print("Error al actualizar el género: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al actualizar el género.')),
+      );
     }
   }
 
@@ -135,27 +173,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: GestureDetector(
-                onTap: () async {
-                  await _uploadProfileImage();
-                },
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundImage: _profileImageUrl != null
-                      ? NetworkImage(_profileImageUrl!)
-                      : null,
-                  backgroundColor: Colors.blue[100],
-                  child: _profileImageUrl == null
-                      ? const Icon(Icons.camera_alt,
-                          size: 30, color: Colors.white)
-                      : null,
-                ),
+            GestureDetector(
+              onTap: () async {
+                await _uploadProfileImage();
+              },
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: _profileImageUrl != null
+                    ? NetworkImage(_profileImageUrl!)
+                    : null,
+                backgroundColor: Colors.blue[100],
+                child: _profileImageUrl == null
+                    ? const Icon(Icons.camera_alt,
+                        size: 30, color: Colors.white)
+                    : null,
               ),
             ),
-
             const SizedBox(height: 16),
-            // Nombre del usuario
             Text(
               '${userData['firstName'] ?? 'N/A'} ${userData['lastName'] ?? 'N/A'}',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -168,7 +202,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            // Tarjetas con la información del usuario
+            // Campo de género agregado
+            Card(
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.person, color: Colors.pink),
+                title: const Text('Género'),
+                subtitle: DropdownButton<String>(
+                  value: _selectedGender,
+                  onChanged: (value) {
+                    if (value != null) {
+                      _updateGender(value);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Masculino',
+                      child: Text('Masculino'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Femenino',
+                      child: Text('Femenino'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Información adicional existente
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               elevation: 4,
@@ -191,7 +255,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 subtitle: Text(userData['role'] ?? 'Sin rol'),
               ),
             ),
-            // Mostrar ciclo solo si es estudiante
             if (userData['role'] == 'estudiante' && _cycleData != null)
               Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -231,7 +294,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final userId = usuarioProvider.userData?['uid'];
 
     if (userId == null) {
-      print("Error: ID de usuario no encontrado.");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error: Usuario no identificado.')),
       );
@@ -239,39 +301,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     try {
-      // Selección de imagen
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image == null) {
-        print("No se seleccionó ninguna imagen.");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
         );
         return;
       }
 
-      print("Imagen seleccionada: ${image.path}");
-
-      // Verifica si el archivo existe
       final file = io.File(image.path);
       if (!file.existsSync()) {
-        print("Error: El archivo seleccionado no existe.");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error: El archivo no existe.')),
         );
         return;
       }
 
-      // Subir imagen
       final String fileName = "profile_images/$userId.png";
       final ref = FirebaseStorage.instance.ref(fileName);
 
-      print("Intentando subir a: $fileName");
-
       final uploadTask = ref.putFile(file);
 
-      // Escucha el progreso
       uploadTask.snapshotEvents.listen((snapshot) {
         if (snapshot.state == TaskState.running) {
           final progress =
@@ -280,12 +332,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       });
 
-      // Completa la subida
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
-      print("URL del archivo subido: $downloadUrl");
 
-      // Guarda la URL en Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -299,7 +348,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SnackBar(content: Text('Imagen actualizada correctamente.')),
       );
     } catch (e) {
-      print('Error al subir la imagen: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Error al actualizar la imagen de perfil.')),
