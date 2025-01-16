@@ -3,7 +3,7 @@
     "project_number": "715882159378",
     "firebase_url": "https://controlacceso-403b0-default-rtdb.firebaseio.com",
     "project_id": "controlacceso-403b0",
-    "storage_bucket": "controlacceso-403b0.appspot.com"
+    "storage_bucket": "controlacceso-403b0.firebasestorage.app"
   },
   "client": [
     {

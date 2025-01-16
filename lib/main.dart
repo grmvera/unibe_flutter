@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:unibe_app_control/firebase_options.dart';
 import 'package:unibe_app_control/home/home_screen.dart';
 import 'package:unibe_app_control/login/login_screen.dart';
 import 'package:unibe_app_control/login/users_provider.dart';
@@ -8,7 +9,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  // Solución para evitar inicialización duplicada
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
   runApp(MyApp());
 }
 
@@ -21,14 +29,11 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Unibe App Control',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        theme: ThemeData(primarySwatch: Colors.blue),
         debugShowCheckedModeBanner: false,
-        // Agregar soporte para localizaciones
         supportedLocales: const [
-          Locale('en', 'US'), // Inglés
-          Locale('es', 'ES'), // Español
+          Locale('en', 'US'),
+          Locale('es', 'ES'),
         ],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -56,6 +61,9 @@ class InitialScreen extends StatelessWidget {
               'images/logo_unibe.png',
               width: MediaQuery.of(context).size.width * 0.8,
               fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Text('Error cargando el logo');
+              },
             ),
             const SizedBox(height: 150),
             ElevatedButton(

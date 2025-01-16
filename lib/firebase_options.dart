@@ -22,17 +22,6 @@ class DefaultFirebaseOptions {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
-      case TargetPlatform.iOS:
-        return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -47,7 +36,7 @@ class DefaultFirebaseOptions {
     projectId: 'controlacceso-403b0',
     authDomain: 'controlacceso-403b0.firebaseapp.com',
     databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.appspot.com',
+    storageBucket: 'controlacceso-403b0.firebasestorage.app',
     measurementId: 'G-3W9RDE6RBM',
   );
 
@@ -60,34 +49,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'controlacceso-403b0.firebasestorage.app', // Cambiado aquí
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBVzJBH_dAOtwZY_gIZ3cersauw-8rB5-o',
-    appId: '1:715882159378:ios:c989f96b9abe01992b67cb',
-    messagingSenderId: '715882159378',
-    projectId: 'controlacceso-403b0',
-    databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.appspot.com',
-    iosBundleId: 'com.example.unibeAppControl',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBVzJBH_dAOtwZY_gIZ3cersauw-8rB5-o',
-    appId: '1:715882159378:ios:c989f96b9abe01992b67cb',
-    messagingSenderId: '715882159378',
-    projectId: 'controlacceso-403b0',
-    databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.appspot.com',
-    iosBundleId: 'com.example.unibeAppControl',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCKlfxoBBoznCsmXbjXd1t1XkbfSwu1kCg',
-    appId: '1:715882159378:web:b4e15906d569f6502b67cb',
-    messagingSenderId: '715882159378',
-    projectId: 'controlacceso-403b0',
-    authDomain: 'controlacceso-403b0.firebaseapp.com',
-    databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.appspot.com',
-    measurementId: 'G-MXF9M7PE1W',
-  );
 }
