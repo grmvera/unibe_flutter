@@ -220,6 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        userRole: usuarioProvider.userData!['role'],
       ),
     );
   }

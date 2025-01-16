@@ -40,6 +40,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        userRole: usuarioProvider.userData!['role'],
       ),
     );
   }

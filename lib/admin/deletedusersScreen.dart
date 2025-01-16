@@ -64,6 +64,7 @@ class _DeletedUsersScreenState extends State<DeletedUsersScreen> {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        userRole: usuarioProvider.userData!['role'],
       ),
       body: SingleChildScrollView(
         child: Padding(
