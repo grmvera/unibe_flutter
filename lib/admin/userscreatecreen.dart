@@ -116,8 +116,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
           if (role == 'estudiante') 'cycleId': _selectedCycle,
           if (role == 'estudiante') 'career': _selectedCareer,
           if (role == 'estudiante') 'semestre': _semesterController.text.trim(),
-          if (role == 'estudiante')
-            'lastAccess': null, // Inicializar lastAccess
+          if (role == 'estudiante')'lastAccess': null, // Inicializar lastAccess
         });
 
         // Llamar a la Firebase Function para enviar el correo
