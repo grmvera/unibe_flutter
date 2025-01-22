@@ -161,14 +161,14 @@ class _StudentViewState extends State<StudentView> {
             top: MediaQuery.of(context).size.height * -0.05,
             left: MediaQuery.of(context).size.width * 0.27,
             child: Container(
-              width: 265, // Ajusta el ancho del círculo
-              height: 265, // Ajusta la altura del círculo
+              width: 265, 
+              height: 265,
               decoration: BoxDecoration(
-                shape: BoxShape.circle, // Asegura que sea circular
+                shape: BoxShape.circle,
                 image: DecorationImage(
-                  image: _getProfileImage(), // Usa la imagen cargada
+                  image: _getProfileImage(),
                   fit: BoxFit
-                      .cover, // Asegura que la imagen cubra todo el contenedor
+                      .cover,
                 ),
               ),
             ),

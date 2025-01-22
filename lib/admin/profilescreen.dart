@@ -344,14 +344,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _updateGender(value);
                     }
                   },
-                  items: const [
-                    DropdownMenuItem(
+                  items: [
+                    const DropdownMenuItem(
                       value: 'Masculino',
                       child: Text('Masculino'),
                     ),
-                    DropdownMenuItem(
+                    const DropdownMenuItem(
                       value: 'Femenino',
                       child: Text('Femenino'),
+                    ),
+                    const DropdownMenuItem(
+                      value:
+                          'No especificado', // Asegúrate de incluir este valor
+                      child: Text('No especificado'),
                     ),
                   ],
                 ),
