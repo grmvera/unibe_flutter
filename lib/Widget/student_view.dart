@@ -20,11 +20,60 @@ class StudentView extends StatefulWidget {
 
 class _StudentViewState extends State<StudentView> {
   bool isAccessRegistered = false;
+  String? profileImageUrl;
+  String? selectedGender = 'No especificado';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileImage();
+  }
+
+  Future<void> _fetchProfileImage() async {
+    try {
+      final String? userId = widget.userData['uid'];
+      if (userId == null) return;
+
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        setState(() {
+          profileImageUrl = data?['profileImage'];
+          selectedGender = data?['gender'] ?? 'No especificado';
+        });
+      } else {
+        print("El documento del usuario no existe.");
+      }
+    } catch (e) {
+      print('Error al cargar la imagen de perfil: $e');
+    }
+  }
+
+  ImageProvider<Object> _getProfileImage() {
+    if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
+      return NetworkImage(profileImageUrl!);
+    } else if (selectedGender == 'Masculino') {
+      return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
+      );
+    } else if (selectedGender == 'Femenino') {
+      return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
+      );
+    } else {
+      return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
+      );
+    }
+  }
 
   Future<void> _registerIngreso(BuildContext context) async {
     try {
-      final String? userId =
-          widget.userData['uid'];
+      final String? userId = widget.userData['uid'];
       if (userId == null) {
         throw Exception('El identificador del usuario no está disponible.');
       }
@@ -106,6 +155,22 @@ class _StudentViewState extends State<StudentView> {
             child: Image.asset(
               'images/carnet3.jpg',
               fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * -0.05,
+            left: MediaQuery.of(context).size.width * 0.27,
+            child: Container(
+              width: 265, // Ajusta el ancho del círculo
+              height: 265, // Ajusta la altura del círculo
+              decoration: BoxDecoration(
+                shape: BoxShape.circle, // Asegura que sea circular
+                image: DecorationImage(
+                  image: _getProfileImage(), // Usa la imagen cargada
+                  fit: BoxFit
+                      .cover, // Asegura que la imagen cubra todo el contenedor
+                ),
+              ),
             ),
           ),
           Positioned(
