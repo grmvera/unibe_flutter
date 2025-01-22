@@ -5,15 +5,6 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
-///
-/// Example:
-/// ```dart
-/// import 'firebase_options.dart';
-/// // ...
-/// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
-/// );
-/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -35,8 +26,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '715882159378',
     projectId: 'controlacceso-403b0',
     authDomain: 'controlacceso-403b0.firebaseapp.com',
-    databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.firebasestorage.app',
+    storageBucket: 'controlacceso-403b0.appspot.com',
     measurementId: 'G-3W9RDE6RBM',
   );
 
@@ -46,7 +36,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '715882159378',
     projectId: 'controlacceso-403b0',
     databaseURL: 'https://controlacceso-403b0-default-rtdb.firebaseio.com',
-    storageBucket: 'controlacceso-403b0.firebasestorage.app', // Cambiado aquí
+    storageBucket: 'controlacceso-403b0.appspot.com', // Corregido
   );
-
 }

@@ -60,7 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (usuarioProvider.userData == null) {
+    final userData = usuarioProvider.userData;
+    if (userData == null) {
       return const Scaffold(
         body: Center(
           child: Text(
@@ -73,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final bool isStudent = usuarioProvider.userData!['role'] == 'estudiante';
 
-    // Configuración de pantallas
     final List<Widget> screens = [
       isStudent
           ? StudentView(
@@ -93,8 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: scaffoldKey,
       appBar: CustomAppBar(
-        userName: usuarioProvider.userData!['firstName'] ?? 'Usuario',
-        userRole: usuarioProvider.userData!['role'] ?? 'Sin Rol',
+        userName: usuarioProvider.userData?['firstName'] ?? 'Usuario',
+        userRole: usuarioProvider.userData?['role'] ?? 'Sin Rol',
         scaffoldKey: scaffoldKey,
       ),
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),

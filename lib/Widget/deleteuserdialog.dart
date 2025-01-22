@@ -27,7 +27,6 @@ class DeleteUserDialog extends StatelessWidget {
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
-          // 'Origin': 'your-origin-domain.com', // Si el servidor requiere un origen específico.
         },
         body: jsonEncode(<String, String>{'uid': userUid}),
       );
@@ -107,7 +106,7 @@ class DeleteUserDialog extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
+                Navigator.of(context).pop();
               },
               child: const Text('Cancelar'),
             ),
@@ -122,7 +121,7 @@ class DeleteUserDialog extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                _deleteUser(context, userUid); // Pasar el UID al método
+                _deleteUser(context, userUid);
               },
               child: const Text(
                 'Eliminar',

@@ -42,8 +42,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis, // Evita desbordes
-                      maxLines: 1, // Limita a una línea
+                      overflow: TextOverflow.ellipsis, 
+                      maxLines: 1, 
                     ),
                     Text(
                       'Rol: $userRole',
@@ -51,8 +51,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         fontSize: 14,
                         color: Colors.grey,
                       ),
-                      overflow: TextOverflow.ellipsis, // Evita desbordes
-                      maxLines: 1, // Limita a una línea
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ],
                 ),

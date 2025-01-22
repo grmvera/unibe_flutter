@@ -19,30 +19,39 @@ class StudentView extends StatefulWidget {
 }
 
 class _StudentViewState extends State<StudentView> {
-  bool isAccessRegistered = false; // Controla si el acceso fue registrado
+  bool isAccessRegistered = false;
 
   Future<void> _registerIngreso(BuildContext context) async {
     try {
-      final String? userId = widget.userData['uid']; // Usa 'uid' como identificador
+      final String? userId =
+          widget.userData['uid'];
       if (userId == null) {
         throw Exception('El identificador del usuario no está disponible.');
       }
 
-      // Actualizar el documento en Firestore usando el UID como ID del documento
-      await FirebaseFirestore.instance
+      final docSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .update({'lastAccess': DateTime.now()});
+          .get();
 
-      setState(() {
-        isAccessRegistered = true; // Marca el acceso como registrado
-      });
+      if (docSnapshot.exists) {
+        await docSnapshot.reference.update({'lastAccess': DateTime.now()});
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingreso registrado exitosamente')),
-      );
+        setState(() {
+          isAccessRegistered = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingreso registrado exitosamente')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Error: No se encontró el usuario con UID $userId')),
+        );
+      }
     } catch (e) {
-      // Manejar cualquier excepción que ocurra
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al registrar ingreso: $e')),
       );
@@ -73,14 +82,12 @@ class _StudentViewState extends State<StudentView> {
                 ElevatedButton(
                   onPressed: isQrActive && !isAccessRegistered
                       ? () async => await _registerIngreso(context)
-                      : null, // Deshabilita si ya fue registrado
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isAccessRegistered
-                        ? Colors.grey[300]
-                        : Colors.white,
-                    foregroundColor: isAccessRegistered
-                        ? Colors.grey[600]
-                        : Colors.blue,
+                    backgroundColor:
+                        isAccessRegistered ? Colors.grey[300] : Colors.white,
+                    foregroundColor:
+                        isAccessRegistered ? Colors.grey[600] : Colors.blue,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10),
                     elevation: 0,

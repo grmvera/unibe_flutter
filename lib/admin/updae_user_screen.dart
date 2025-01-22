@@ -203,8 +203,8 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
     return Scaffold(
       key: scaffoldKey,
       appBar: CustomAppBar(
-        userName: usuarioProvider.userData!['firstName'] ?? 'Usuario',
-        userRole: usuarioProvider.userData!['role'] ?? 'Sin Rol',
+        userName: usuarioProvider.userData?['firstName'] ?? 'Usuario',
+        userRole: usuarioProvider.userData?['role'] ?? 'Sin Rol',
         scaffoldKey: scaffoldKey,
       ),
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
