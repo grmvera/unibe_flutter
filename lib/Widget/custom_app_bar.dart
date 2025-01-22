@@ -32,24 +32,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 height: 50,
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '¡Hola, $userName!',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '¡Hola, $userName!',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis, // Evita desbordes
+                      maxLines: 1, // Limita a una línea
                     ),
-                  ),
-                  Text(
-                    'Rol: $userRole',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
+                    Text(
+                      'Rol: $userRole',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                      overflow: TextOverflow.ellipsis, // Evita desbordes
+                      maxLines: 1, // Limita a una línea
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -60,7 +66,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             IconButton(
               icon: const Icon(Icons.menu),
               onPressed: () {
-                scaffoldKey.currentState!.openEndDrawer(); 
+                scaffoldKey.currentState!.openEndDrawer();
               },
             ),
           ],

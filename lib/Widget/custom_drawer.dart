@@ -53,6 +53,18 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              'Este sistema es propiedad exclusiva de la Universidad UNIB.E y ha sido desarrollado para uso institucional. Implementado por Tabata Mendoza y Geovanny Vera, bajo los estándares técnicos y académicos establecidos.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600], // Texto en color gris
+              ),
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
