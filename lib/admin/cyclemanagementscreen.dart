@@ -169,6 +169,7 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        userRole: usuarioProvider.userData!['role'],
       ),
       body: SingleChildScrollView(
         child: Padding(

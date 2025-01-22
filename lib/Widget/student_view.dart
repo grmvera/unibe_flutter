@@ -1,29 +1,65 @@
 import 'package:flutter/material.dart';
-import 'qr_studen.dart'; // Widget para generar el QR.
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase Firestore.
+import 'qr_studen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class StudentView extends StatelessWidget {
+class StudentView extends StatefulWidget {
   final Map<String, dynamic> userData;
-  final bool showAppBar; // Control del AppBar.
-  final bool showDetails; // Control para mostrar detalles (nombre y cédula).
+  final bool showAppBar;
+  final bool showDetails;
 
   const StudentView({
     Key? key,
     required this.userData,
     this.showAppBar = true,
-    this.showDetails = true, // Por defecto muestra detalles.
+    this.showDetails = true,
   }) : super(key: key);
 
   @override
+  _StudentViewState createState() => _StudentViewState();
+}
+
+class _StudentViewState extends State<StudentView> {
+  bool isAccessRegistered = false; // Controla si el acceso fue registrado
+
+  Future<void> _registerIngreso(BuildContext context) async {
+    try {
+      final String? userId = widget.userData['uid']; // Usa 'uid' como identificador
+      if (userId == null) {
+        throw Exception('El identificador del usuario no está disponible.');
+      }
+
+      // Actualizar el documento en Firestore usando el UID como ID del documento
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .update({'lastAccess': DateTime.now()});
+
+      setState(() {
+        isAccessRegistered = true; // Marca el acceso como registrado
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ingreso registrado exitosamente')),
+      );
+    } catch (e) {
+      // Manejar cualquier excepción que ocurra
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrar ingreso: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Obtener tiempo restante en minutos.
-    final DateTime? lastAccess = (userData['lastAccess'] as Timestamp?)?.toDate();
+    final DateTime? lastAccess =
+        (widget.userData['lastAccess'] as Timestamp?)?.toDate();
     final bool isQrActive = _isQrAvailable(lastAccess);
-    final int minutesRemaining = isQrActive ? 0 : _getMinutesUntilAvailable(lastAccess);
+    final int minutesRemaining =
+        isQrActive ? 0 : _getMinutesUntilAvailable(lastAccess);
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: showAppBar
+      appBar: widget.showAppBar
           ? AppBar(
               title: const Text('Carnet del Estudiante'),
               backgroundColor: Colors.white,
@@ -34,46 +70,26 @@ class StudentView extends StatelessWidget {
                 },
               ),
               actions: [
-                if (isQrActive)
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await _registerIngreso(context);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error al registrar ingreso: $e'),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Registrar Ingreso',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  )
-                else
-                  ElevatedButton(
-                    onPressed: null, // Deshabilitado cuando QR no está disponible.
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.grey[600],
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Esperando...',
-                      style: TextStyle(fontSize: 14),
-                    ),
+                ElevatedButton(
+                  onPressed: isQrActive && !isAccessRegistered
+                      ? () async => await _registerIngreso(context)
+                      : null, // Deshabilita si ya fue registrado
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isAccessRegistered
+                        ? Colors.grey[300]
+                        : Colors.white,
+                    foregroundColor: isAccessRegistered
+                        ? Colors.grey[600]
+                        : Colors.blue,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    elevation: 0,
                   ),
+                  child: Text(
+                    isAccessRegistered ? 'Esperando...' : 'Registrar Ingreso',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
               ],
             )
           : null,
@@ -95,7 +111,7 @@ class StudentView extends StatelessWidget {
               children: [
                 if (isQrActive)
                   QrCodeWidget(
-                    studentId: userData['idNumber'],
+                    studentId: widget.userData['idNumber'],
                     qrColor: Colors.white,
                     size: 200.0,
                   )
@@ -116,10 +132,10 @@ class StudentView extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                if (showDetails) ...[
+                if (widget.showDetails) ...[
                   const SizedBox(height: 10),
                   Text(
-                    '${userData['lastName']} ${userData['firstName']}',
+                    '${widget.userData['lastName']} ${widget.userData['firstName']}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -128,7 +144,7 @@ class StudentView extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    userData['idNumber'],
+                    widget.userData['idNumber'],
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.white,
@@ -158,33 +174,13 @@ class StudentView extends StatelessWidget {
   bool _isQrAvailable(DateTime? lastAccess) {
     if (lastAccess == null) return true;
     final DateTime now = DateTime.now();
-    return now.difference(lastAccess).inMinutes >= 120;
+    return now.difference(lastAccess).inMinutes >= 2;
   }
 
   int _getMinutesUntilAvailable(DateTime? lastAccess) {
     if (lastAccess == null) return 0;
     final DateTime now = DateTime.now();
-    final int difference = 120 - now.difference(lastAccess).inMinutes;
+    final int difference = 2 - now.difference(lastAccess).inMinutes;
     return difference > 0 ? difference : 0;
-  }
-
-  Future<void> _registerIngreso(BuildContext context) async {
-    try {
-      final userId = userData['idNumber'];
-      if (userId == null) {
-        throw Exception('El identificador del usuario no está disponible.');
-      }
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({'lastAccess': DateTime.now()});
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingreso registrado exitosamente')),
-      );
-    } catch (e) {
-      throw Exception('Error al registrar ingreso: $e');
-    }
   }
 }

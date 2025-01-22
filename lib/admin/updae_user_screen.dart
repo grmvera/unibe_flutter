@@ -476,6 +476,7 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        userRole: usuarioProvider.userData!['role'],
       ),
     );
   }

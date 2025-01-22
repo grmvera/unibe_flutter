@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unibe_app_control/login/login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:android_intent_plus/android_intent.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Map<String, dynamic> userData;
@@ -25,12 +24,8 @@ class CustomDrawer extends StatelessWidget {
               style: const TextStyle(fontSize: 16),
             ),
             currentAccountPicture: CircleAvatar(
+              backgroundImage: _getProfileImage(userData),
               backgroundColor: Colors.grey[300],
-              child: const Icon(
-                Icons.person,
-                size: 50,
-                color: Colors.black,
-              ),
             ),
             decoration: const BoxDecoration(
               color: Color(0xFF1225F5),
@@ -55,6 +50,18 @@ class CustomDrawer extends StatelessWidget {
                   onTap: () => _launchURL(context),
                 ),
               ],
+            ),
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              'Este sistema es propiedad exclusiva de la Universidad UNIB.E y ha sido desarrollado para uso institucional. Implementado por Tabata Mendoza y Geovanny Vera, bajo los estándares técnicos y académicos establecidos.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600], // Texto en color gris
+              ),
             ),
           ),
           Padding(
@@ -84,15 +91,38 @@ class CustomDrawer extends StatelessWidget {
     );
   }
 
+  ImageProvider<Object> _getProfileImage(Map<String, dynamic> userData) {
+    final profileImageUrl = userData['profileImage'];
+    final selectedGender = userData['gender'];
+
+    if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+      // Si el usuario ha subido una imagen personalizada, usar esa
+      return NetworkImage(profileImageUrl);
+    } else if (selectedGender == 'Masculino') {
+      // Si no hay imagen personalizada y el género es masculino, usar la imagen predeterminada masculina
+      return const NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
+      );
+    } else if (selectedGender == 'Femenino') {
+      // Si no hay imagen personalizada y el género es femenino, usar la imagen predeterminada femenina
+      return const NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
+      );
+    } else {
+      // Si no hay imagen personalizada ni género, usar la imagen genérica
+      return const NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
+      );
+    }
+  }
+
   void _launchURL(BuildContext context) async {
     const url = 'https://acad.unibe.edu.ec/';
     final Uri uri = Uri.parse(url);
 
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri,
-            mode: LaunchMode
-                .externalApplication);
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         throw 'No se pudo abrir la URL';
       }
