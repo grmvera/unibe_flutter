@@ -25,16 +25,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final usuarioProvider =
-        Provider.of<UsuarioProvider>(context, listen: false);
-    usuarioProvider.fetchUserData().then((_) {
-      if (usuarioProvider.userData != null &&
-          usuarioProvider.userData!['isFirstLogin'] == true) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ChangePassword()),
-        );
-      }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final usuarioProvider =
+          Provider.of<UsuarioProvider>(context, listen: false);
+      usuarioProvider.fetchUserData().then((_) {
+        if (usuarioProvider.userData != null &&
+            usuarioProvider.userData!['isFirstLogin'] == true) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChangePassword()),
+          );
+        }
+      });
     });
   }
 
@@ -75,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
       isStudent
           ? StudentView(
               userData: usuarioProvider.userData!,
-              showAppBar: false, 
+              showAppBar: false,
               showDetails: false,
             )
           : _buildAdminView(),
