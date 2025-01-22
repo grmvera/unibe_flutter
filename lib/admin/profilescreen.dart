@@ -1,3 +1,5 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:io' as io;
 import 'package:provider/provider.dart';
@@ -25,7 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Duration _timeLeft = Duration.zero;
   Map<String, dynamic>? _cycleData;
   String? _profileImageUrl;
-  String? _selectedGender; // Variable para manejar el género seleccionado
+  String? _selectedGender;
 
   @override
   void initState() {
@@ -78,22 +80,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final usuarioProvider =
           Provider.of<UsuarioProvider>(context, listen: false);
-      final String? imageUrl = usuarioProvider.userData?['profileImage'];
-      final String? gender = usuarioProvider.userData?['gender'];
+      final String? userId = usuarioProvider.userData?['uid'];
 
-      if (imageUrl != null && imageUrl.isNotEmpty) {
-        setState(() {
-          _profileImageUrl = imageUrl;
-        });
+      if (userId == null) {
+        throw Exception("ID de usuario no encontrado.");
       }
 
-      if (gender != null && gender.isNotEmpty) {
+      final documentSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (documentSnapshot.exists) {
+        final data = documentSnapshot.data();
+
         setState(() {
-          _selectedGender = gender;
+          _profileImageUrl = data?['profileImage']; // Imagen del usuario
+          _selectedGender = data?['gender']; // Género del usuario
         });
+      } else {
+        print("El documento del usuario no existe.");
       }
     } catch (e) {
-      print('Error al cargar datos del perfil: $e');
+      print("Error al cargar la imagen o el género de perfil: $e");
+    }
+  }
+
+  ImageProvider<Object> _getProfileImage() {
+    // Imprime los valores actuales para depuración
+    print('_profileImageUrl: $_profileImageUrl');
+    print('_selectedGender: $_selectedGender');
+
+    if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
+      // Imagen personalizada del usuario
+      return NetworkImage(_profileImageUrl!);
+    } else if (_selectedGender == 'Masculino') {
+      // Imagen predeterminada para género masculino
+      return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
+      );
+    } else if (_selectedGender == 'Femenino') {
+      // Imagen predeterminada para género femenino
+      return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
+      );
+    } else {
+      // Imagen predeterminada genérica
+      return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
+      );
     }
   }
 
@@ -123,23 +158,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception("ID de usuario no encontrado.");
       }
 
-      // Verificar si el documento existe y si contiene el campo "gender"
       final documentSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .get();
 
       if (documentSnapshot.exists) {
-        // Si el documento existe, actualiza el campo "gender"
-        await FirebaseFirestore.instance.collection('users').doc(userId).set(
-            {'gender': gender},
-            SetOptions(merge: true)); // Crea o actualiza el campo
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .set({'gender': gender}, SetOptions(merge: true));
       } else {
-        // Si el documento no existe (caso raro), lanza una excepción
         throw Exception("El documento del usuario no existe en Firestore.");
       }
 
-      // Actualiza el estado local
       setState(() {
         _selectedGender = gender;
       });
@@ -151,6 +183,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print("Error al actualizar el género: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error al actualizar el género.')),
+      );
+    }
+  }
+
+  Future<void> _uploadProfileImage() async {
+    final usuarioProvider =
+        Provider.of<UsuarioProvider>(context, listen: false);
+    final userId = usuarioProvider.userData?['uid'];
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Usuario no identificado.')),
+      );
+      return;
+    }
+
+    try {
+      Uint8List? fileBytes;
+      String fileName = "profile_images/$userId.png";
+
+      if (kIsWeb) {
+        // Selección de archivos en la web
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          allowMultiple: false,
+        );
+
+        if (result == null || result.files.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
+          );
+          return;
+        }
+
+        fileBytes = result.files.first.bytes; // Obtiene los bytes del archivo
+      } else {
+        // Selección de imágenes en dispositivos móviles
+        final picker = ImagePicker();
+        final XFile? image =
+            await picker.pickImage(source: ImageSource.gallery);
+
+        if (image == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
+          );
+          return;
+        }
+
+        final file = io.File(image.path);
+        if (!file.existsSync()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error: El archivo no existe.')),
+          );
+          return;
+        }
+
+        fileBytes = await file.readAsBytes(); // Lee los bytes del archivo
+      }
+
+      if (fileBytes == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al leer el archivo.')),
+        );
+        return;
+      }
+
+      final ref = FirebaseStorage.instance.ref(fileName);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Subiendo imagen, por favor espera...')),
+      );
+
+      // Subir archivo a Firebase Storage
+      final uploadTask = ref.putData(fileBytes);
+
+      uploadTask.snapshotEvents.listen((snapshot) {
+        if (snapshot.state == TaskState.running) {
+          final progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          print("Progreso de subida: $progress%");
+        }
+      });
+
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .update({'profileImage': downloadUrl});
+
+      setState(() {
+        _profileImageUrl = downloadUrl;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Imagen actualizada correctamente.')),
+      );
+    } catch (e) {
+      print('Error al subir la imagen: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar la imagen de perfil: $e')),
       );
     }
   }
@@ -179,9 +313,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               child: CircleAvatar(
                 radius: 60,
-                backgroundImage: _profileImageUrl != null
-                    ? NetworkImage(_profileImageUrl!)
-                    : null,
+                backgroundImage: _getProfileImage(),
                 backgroundColor: Colors.blue[100],
                 child: _profileImageUrl == null
                     ? const Icon(Icons.camera_alt,
@@ -202,7 +334,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            // Campo de género agregado
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               elevation: 4,
@@ -216,7 +347,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: _selectedGender,
                   onChanged: (value) {
                     if (value != null) {
-                      _updateGender(value);
+                      _updateGender(value); // Actualiza el género en Firestore
                     }
                   },
                   items: const [
@@ -232,7 +363,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            // Información adicional existente
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               elevation: 4,
@@ -286,72 +416,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         userRole: usuarioProvider.userData!['role'],
       ),
     );
-  }
-
-  Future<void> _uploadProfileImage() async {
-    final usuarioProvider =
-        Provider.of<UsuarioProvider>(context, listen: false);
-    final userId = usuarioProvider.userData?['uid'];
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Usuario no identificado.')),
-      );
-      return;
-    }
-
-    try {
-      final picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-      if (image == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
-        );
-        return;
-      }
-
-      final file = io.File(image.path);
-      if (!file.existsSync()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: El archivo no existe.')),
-        );
-        return;
-      }
-
-      final String fileName = "profile_images/$userId.png";
-      final ref = FirebaseStorage.instance.ref(fileName);
-
-      final uploadTask = ref.putFile(file);
-
-      uploadTask.snapshotEvents.listen((snapshot) {
-        if (snapshot.state == TaskState.running) {
-          final progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          print("Progreso de subida: $progress%");
-        }
-      });
-
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({'profileImage': downloadUrl});
-
-      setState(() {
-        _profileImageUrl = downloadUrl;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Imagen actualizada correctamente.')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Error al actualizar la imagen de perfil.')),
-      );
-    }
   }
 }
