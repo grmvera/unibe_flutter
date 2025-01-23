@@ -8,7 +8,7 @@ class BlockUnblockStudentsWidget {
   static Future<void> showBlockUnblockDialog(BuildContext context) async {
     showDialog(
       context: context,
-      barrierDismissible: false, // Evita cerrar el diálogo haciendo clic afuera
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
@@ -16,7 +16,8 @@ class BlockUnblockStudentsWidget {
           ),
           title: Row(
             children: [
-              const Icon(Icons.manage_accounts, color: Colors.blueAccent, size: 30),
+              const Icon(Icons.manage_accounts,
+                  color: Colors.blueAccent, size: 30),
               const SizedBox(width: 10),
               const Text(
                 'Gestión de Estudiantes',
@@ -42,7 +43,7 @@ class BlockUnblockStudentsWidget {
               SizedBox(height: 20),
             ],
           ),
-          actionsAlignment: MainAxisAlignment.center, // Centra los botones
+          actionsAlignment: MainAxisAlignment.center,
           actions: [
             _buildStyledButton(
               context,
@@ -77,7 +78,8 @@ class BlockUnblockStudentsWidget {
     );
   }
 
-  static Widget _buildStyledButton(BuildContext context, String label, Color bgColor, Color fgColor, VoidCallback onPressed) {
+  static Widget _buildStyledButton(BuildContext context, String label,
+      Color bgColor, Color fgColor, VoidCallback onPressed) {
     return SizedBox(
       width: 120,
       child: ElevatedButton(
@@ -98,7 +100,6 @@ class BlockUnblockStudentsWidget {
     );
   }
 
-  // Seleccionar archivo Excel
   static Future<void> _pickExcel(BuildContext context, bool isBlocking) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -149,7 +150,6 @@ class BlockUnblockStudentsWidget {
     }
   }
 
-  // Procesar Excel
   static Future<void> _processExcel(Uint8List bytes, bool isBlocking) async {
     var excel = Excel.decodeBytes(bytes);
     List<String> idNumbers = [];
@@ -167,7 +167,8 @@ class BlockUnblockStudentsWidget {
         }
 
         if (cedulaColumnIndex == null) {
-          throw Exception('No se encontró la columna "cedula" en el archivo Excel.');
+          throw Exception(
+              'No se encontró la columna "cedula" en el archivo Excel.');
         }
 
         for (int i = 1; i < rows.length; i++) {
@@ -180,15 +181,23 @@ class BlockUnblockStudentsWidget {
     }
 
     for (String id in idNumbers) {
-      await FirebaseFirestore.instance
+      var querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('idNumber', isEqualTo: id)
-          .get()
-          .then((querySnapshot) {
-        for (var doc in querySnapshot.docs) {
-          doc.reference.update({'status': isBlocking ? false : true});
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        print('No se encontró ningún usuario con el ID: $id');
+        continue; 
+      }
+
+      for (var doc in querySnapshot.docs) {
+        try {
+          await doc.reference.update({'status': isBlocking ? false : true});
+        } catch (e) {
+          print('Error al actualizar el documento con ID $id: $e');
         }
-      });
+      }
     }
   }
 }

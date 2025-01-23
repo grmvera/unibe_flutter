@@ -27,7 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Duration _timeLeft = Duration.zero;
   Map<String, dynamic>? _cycleData;
   String? _profileImageUrl;
-  String? _selectedGender;
+  String? _selectedGender = 'No especificado';
 
   @override
   void initState() {
@@ -95,11 +95,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final data = documentSnapshot.data();
 
         setState(() {
-          _profileImageUrl = data?['profileImage']; // Imagen del usuario
-          _selectedGender = data?['gender']; // Género del usuario
+          _profileImageUrl = data?['profileImage'];
+          _selectedGender = data?['gender'] ?? 'No especificado';
         });
       } else {
+        // Manejar el caso de documento inexistente
         print("El documento del usuario no existe.");
+        setState(() {
+          _profileImageUrl = null;
+          _selectedGender = 'No especificado';
+        });
       }
     } catch (e) {
       print("Error al cargar la imagen o el género de perfil: $e");
@@ -107,25 +112,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   ImageProvider<Object> _getProfileImage() {
-    // Imprime los valores actuales para depuración
-    print('_profileImageUrl: $_profileImageUrl');
-    print('_selectedGender: $_selectedGender');
-
     if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-      // Imagen personalizada del usuario
       return NetworkImage(_profileImageUrl!);
     } else if (_selectedGender == 'Masculino') {
-      // Imagen predeterminada para género masculino
       return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
       );
     } else if (_selectedGender == 'Femenino') {
-      // Imagen predeterminada para género femenino
       return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
       );
     } else {
-      // Imagen predeterminada genérica
       return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
       );
@@ -204,7 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String fileName = "profile_images/$userId.png";
 
       if (kIsWeb) {
-        // Selección de archivos en la web
+        // Selección de archivo en web
         final result = await FilePicker.platform.pickFiles(
           type: FileType.image,
           allowMultiple: false,
@@ -217,9 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return;
         }
 
-        fileBytes = result.files.first.bytes; // Obtiene los bytes del archivo
+        fileBytes = result.files.first.bytes;
+        if (fileBytes == null) {
+          throw Exception("No se pudo leer el archivo en web.");
+        }
       } else {
-        // Selección de imágenes en dispositivos móviles
+        // Selección de archivo en móvil
         final picker = ImagePicker();
         final XFile? image =
             await picker.pickImage(source: ImageSource.gallery);
@@ -233,20 +233,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         final file = io.File(image.path);
         if (!file.existsSync()) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: El archivo no existe.')),
-          );
-          return;
+          throw Exception("El archivo no existe.");
         }
 
-        fileBytes = await file.readAsBytes(); // Lee los bytes del archivo
-      }
-
-      if (fileBytes == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al leer el archivo.')),
-        );
-        return;
+        fileBytes = await file.readAsBytes();
       }
 
       final ref = FirebaseStorage.instance.ref(fileName);
@@ -255,15 +245,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SnackBar(content: Text('Subiendo imagen, por favor espera...')),
       );
 
-      // Subir archivo a Firebase Storage
       final uploadTask = ref.putData(fileBytes);
 
+      // Escuchar eventos de progreso
       uploadTask.snapshotEvents.listen((snapshot) {
-        if (snapshot.state == TaskState.running) {
-          final progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          print("Progreso de subida: $progress%");
-        }
+        final progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        print("Progreso de subida: $progress%");
       });
 
       final snapshot = await uploadTask;
@@ -347,17 +335,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: _selectedGender,
                   onChanged: (value) {
                     if (value != null) {
-                      _updateGender(value); // Actualiza el género en Firestore
+                      _updateGender(value);
                     }
                   },
-                  items: const [
-                    DropdownMenuItem(
+                  items: [
+                    const DropdownMenuItem(
                       value: 'Masculino',
                       child: Text('Masculino'),
                     ),
-                    DropdownMenuItem(
+                    const DropdownMenuItem(
                       value: 'Femenino',
                       child: Text('Femenino'),
+                    ),
+                    const DropdownMenuItem(
+                      value:
+                          'No especificado', // Asegúrate de incluir este valor
+                      child: Text('No especificado'),
                     ),
                   ],
                 ),

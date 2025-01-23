@@ -17,37 +17,61 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor, ingrese su correo y contraseña.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
+      _errorMessage = '';
     });
 
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      String userId = userCredential.user!.uid;
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      final user = userCredential.user;
 
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get(const GetOptions(source: Source.server));
-
-      if (userDoc.exists && userDoc.get('status') == true) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Tu cuenta está inactiva.';
-        });
+      if (user == null) {
+        throw FirebaseAuthException(
+            code: 'user-not-found', message: 'Usuario no encontrado.');
       }
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!userDoc.exists || userDoc.data()?['status'] != true) {
+        throw Exception(
+            'Tu cuenta está inactiva o los datos en Firestore son inválidos.');
+      }
+
+      final data = userDoc.data();
+      if (data == null ||
+          data['firstName'] == null ||
+          data['lastName'] == null ||
+          data['role'] == null) {
+        throw Exception('Faltan datos necesarios en tu cuenta.');
+      }
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = 'Error de autenticación: ${e.message}';
+      });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error al iniciar sesión: ${e.toString()}';
+        _errorMessage = 'Error: $e';
       });
     } finally {
       setState(() {

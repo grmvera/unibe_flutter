@@ -60,7 +60,7 @@ class CustomDrawer extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600], // Texto en color gris
+                color: Colors.grey[600],
               ),
             ),
           ),
@@ -96,20 +96,17 @@ class CustomDrawer extends StatelessWidget {
     final selectedGender = userData['gender'];
 
     if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
-      // Si el usuario ha subido una imagen personalizada, usar esa
       return NetworkImage(profileImageUrl);
     } else if (selectedGender == 'Masculino') {
-      // Si no hay imagen personalizada y el género es masculino, usar la imagen predeterminada masculina
+
       return const NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
       );
     } else if (selectedGender == 'Femenino') {
-      // Si no hay imagen personalizada y el género es femenino, usar la imagen predeterminada femenina
       return const NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
       );
     } else {
-      // Si no hay imagen personalizada ni género, usar la imagen genérica
       return const NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
       );

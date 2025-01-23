@@ -13,8 +13,8 @@ class _ChangePassword extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _obscureNewPassword = true; // Control de visibilidad de nueva contraseña
-  bool _obscureConfirmPassword = true; // Control de visibilidad de confirmación
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -26,20 +26,42 @@ class _ChangePassword extends State<ChangePassword> {
   Future<void> _changePassword() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await FirebaseAuth.instance.currentUser!
-            .updatePassword(_newPasswordController.text);
+        final user = FirebaseAuth.instance.currentUser;
 
-        String uid = FirebaseAuth.instance.currentUser!.uid;
+        if (user == null) {
+          throw FirebaseAuthException(
+            code: 'user-not-found',
+            message: 'No se encontró al usuario actual.',
+          );
+        }
+        await user.updatePassword(_newPasswordController.text);
+
+        String uid = user.uid;
         final usersCollection = FirebaseFirestore.instance.collection('users');
-        await usersCollection.doc(uid).update({'isFirstLogin': false});
+        final docSnapshot = await usersCollection.doc(uid).get();
+
+        if (docSnapshot.exists) {
+          await usersCollection.doc(uid).update({'isFirstLogin': false});
+        } else {
+          await usersCollection.doc(uid).set({
+            'isFirstLogin': false,
+            'uid': uid,
+            'createdAt': DateTime.now(),
+          });
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contraseña cambiada con éxito')),
         );
+
         Navigator.pop(context);
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ${e.message}')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error inesperado: $e')),
         );
       }
     }
@@ -53,7 +75,7 @@ class _ChangePassword extends State<ChangePassword> {
           'Cambiar Contraseña',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF3A3F58), // Color azul grisáceo
+        backgroundColor: const Color(0xFF3A3F58),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -136,7 +158,8 @@ class _ChangePassword extends State<ChangePassword> {
                               : Icons.visibility),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),

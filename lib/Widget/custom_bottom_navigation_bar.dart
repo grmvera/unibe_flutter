@@ -16,13 +16,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Crear los ítems dinámicamente según el rol
     final List<BottomNavigationBarItem> items = [
       const BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: 'Inicio',
       ),
-      if (userRole != 'estudiante') // Ocultar "Escanear" si el rol es estudiante
+      if (userRole != 'estudiante') 
         const BottomNavigationBarItem(
           icon: Icon(Icons.camera_alt),
           label: 'Escanear',
@@ -33,11 +32,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
       ),
     ];
 
-    // Mapear el índice actual al número de ítems visibles
     final int adjustedIndex = currentIndex >= items.length ? 0 : currentIndex;
 
     return BottomNavigationBar(
-      currentIndex: adjustedIndex, // Usar el índice ajustado
+      currentIndex: adjustedIndex, 
       onTap: (index) {
         if (userRole != 'estudiante' && index == 1) {
           Navigator.push(

@@ -42,6 +42,6 @@ flutter:
     - images/logo_unibe.png
     - images/logo_unibe_dos.jpg
     - images/unibe_logo_am.png
-    - images/carnet.jpg
-    - images/carnet2.jpg
-    - images/carnet3.jpg
+    - images/carnet.png
+    - images/default_profile.png
+

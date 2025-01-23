@@ -56,8 +56,8 @@ class _DeletedUsersScreenState extends State<DeletedUsersScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
-        userName: usuarioProvider.userData!['firstName'] ?? 'Usuario',
-        userRole: usuarioProvider.userData!['role'] ?? 'Sin Rol',
+        userName: usuarioProvider.userData?['firstName'] ?? 'Usuario',
+        userRole: usuarioProvider.userData?['role'] ?? 'Sin Rol',
         scaffoldKey: _scaffoldKey,
       ),
       endDrawer: CustomDrawer(userData: usuarioProvider.userData!),

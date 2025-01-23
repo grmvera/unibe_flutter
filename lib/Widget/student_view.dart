@@ -19,30 +19,88 @@ class StudentView extends StatefulWidget {
 }
 
 class _StudentViewState extends State<StudentView> {
-  bool isAccessRegistered = false; // Controla si el acceso fue registrado
+  bool isAccessRegistered = false;
+  String? profileImageUrl;
+  String? selectedGender = 'No especificado';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileImage();
+  }
+
+  Future<void> _fetchProfileImage() async {
+    try {
+      final String? userId = widget.userData['uid'];
+      if (userId == null) return;
+
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        setState(() {
+          profileImageUrl = data?['profileImage'];
+          selectedGender = data?['gender'] ?? 'No especificado';
+        });
+      } else {
+        print("El documento del usuario no existe.");
+      }
+    } catch (e) {
+      print('Error al cargar la imagen de perfil: $e');
+    }
+  }
+
+  ImageProvider<Object> _getProfileImage() {
+      if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
+        return NetworkImage(profileImageUrl!);
+      } else if (selectedGender == 'Masculino') {
+        return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
+        );
+      } else if (selectedGender == 'Femenino') {
+        return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
+        );
+      } else {
+        return NetworkImage(
+        'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
+        );
+      }
+  }
 
   Future<void> _registerIngreso(BuildContext context) async {
     try {
-      final String? userId = widget.userData['uid']; // Usa 'uid' como identificador
+      final String? userId = widget.userData['uid'];
       if (userId == null) {
         throw Exception('El identificador del usuario no está disponible.');
       }
 
-      // Actualizar el documento en Firestore usando el UID como ID del documento
-      await FirebaseFirestore.instance
+      final docSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .update({'lastAccess': DateTime.now()});
+          .get();
 
-      setState(() {
-        isAccessRegistered = true; // Marca el acceso como registrado
-      });
+      if (docSnapshot.exists) {
+        await docSnapshot.reference.update({'lastAccess': DateTime.now()});
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingreso registrado exitosamente')),
-      );
+        setState(() {
+          isAccessRegistered = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingreso registrado exitosamente')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Error: No se encontró el usuario con UID $userId')),
+        );
+      }
     } catch (e) {
-      // Manejar cualquier excepción que ocurra
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al registrar ingreso: $e')),
       );
@@ -73,14 +131,12 @@ class _StudentViewState extends State<StudentView> {
                 ElevatedButton(
                   onPressed: isQrActive && !isAccessRegistered
                       ? () async => await _registerIngreso(context)
-                      : null, // Deshabilita si ya fue registrado
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isAccessRegistered
-                        ? Colors.grey[300]
-                        : Colors.white,
-                    foregroundColor: isAccessRegistered
-                        ? Colors.grey[600]
-                        : Colors.blue,
+                    backgroundColor:
+                        isAccessRegistered ? Colors.grey[300] : Colors.white,
+                    foregroundColor:
+                        isAccessRegistered ? Colors.grey[600] : Colors.blue,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10),
                     elevation: 0,
@@ -97,8 +153,23 @@ class _StudentViewState extends State<StudentView> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'images/carnet3.jpg',
+              'images/carnet.png',
               fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.06,
+            left: MediaQuery.of(context).size.width * 0.26,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.6,
+              height: MediaQuery.of(context).size.width * 0.6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: _getProfileImage(),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
           Positioned(

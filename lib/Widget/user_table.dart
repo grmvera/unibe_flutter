@@ -338,7 +338,7 @@ class _UserTableState extends State<UserTable> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+                    Navigator.of(context).pop();
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[600],

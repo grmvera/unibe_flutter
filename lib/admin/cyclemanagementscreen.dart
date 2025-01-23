@@ -101,7 +101,7 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
         'name': name,
         'startDate': startDate!.toIso8601String(),
         'endDate': endDate!.toIso8601String(),
-        'isActive': isActive, // Validar estado inicial del ciclo
+        'isActive': isActive,
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ciclo creado exitosamente')),

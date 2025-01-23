@@ -1,7 +1,7 @@
-import 'dart:convert'; // Para decodificar JSON
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart'; // Para escaneo en Web y Android
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase
+import 'package:qr_code_scanner/qr_code_scanner.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'student_view.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -12,10 +12,10 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  QRViewController? _qrController; // Controlador para Web y Android
+  QRViewController? _qrController; 
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   bool isCameraInitialized = false;
-  String? statusMessage; // Mensaje para mostrar el estado al usuario
+  String? statusMessage; 
 
   @override
   void initState() {
@@ -68,7 +68,6 @@ class _CameraScreenState extends State<CameraScreen> {
   void _onQRViewCreated(QRViewController controller) {
     _qrController = controller;
 
-    // Escucha el flujo de datos del escaneo
     _qrController!.scannedDataStream.listen((scanData) async {
       if (scanData.code != null && scanData.code!.isNotEmpty) {
         setState(() {
@@ -76,7 +75,7 @@ class _CameraScreenState extends State<CameraScreen> {
         });
         print('Código QR detectado: ${scanData.code}');
         await _processQRCode(scanData.code!);
-        _qrController?.pauseCamera(); // Pausa para evitar múltiples lecturas
+        _qrController?.pauseCamera(); 
       } else {
         setState(() {
           statusMessage = 'No se detectó ningún código QR.';
@@ -90,27 +89,27 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       Map<String, dynamic> data = {};
       try {
-        data = json.decode(qrData); // Intenta decodificar como JSON
+        data = json.decode(qrData); 
       } catch (e) {
-        data['id'] = qrData; // Si falla, trata el QR como ID directo
+        data['id'] = qrData; 
       }
 
       if (data.containsKey('id')) {
         final studentData = await fetchStudentFromFirebase(data['id']);
         if (studentData != null) {
           setState(() {
-            statusMessage = null; // Limpia el mensaje antes de navegar
+            statusMessage = null; 
           });
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => StudentView(
                 userData: studentData,
-                showAppBar: true, // Asegúrate de mostrar el AppBar al escanear
+                showAppBar: true, 
               ),
             ),
           ).then((_) {
-            _qrController?.resumeCamera(); // Reactiva la cámara al regresar
+            _qrController?.resumeCamera(); 
           });
         } else {
           setState(() {
@@ -129,25 +128,27 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> fetchStudentFromFirebase(
-      String idNumber) async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('idNumber', isEqualTo: idNumber)
-          .get();
+Future<Map<String, dynamic>?> fetchStudentFromFirebase(String idNumber) async {
+  try {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('idNumber', isEqualTo: idNumber)
+        .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        // Añadimos el docId al mapa de datos del usuario
-        final userData = querySnapshot.docs.first.data();
-        userData['docId'] = querySnapshot.docs.first.id;
-        return userData;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print('Error al buscar en Firebase: $e');
+    if (querySnapshot.docs.isNotEmpty) {
+      final userData = querySnapshot.docs.first.data();
+      userData['docId'] = querySnapshot.docs.first.id;
+
+      print('Usuario encontrado: ${userData['idNumber']}');
+      return userData;
+    } else {
+      print('No se encontró ningún usuario con el ID: $idNumber');
       return null;
     }
+  } catch (e) {
+    print('Error al buscar en Firebase: $e');
+    return null;
   }
+}
+
 }
