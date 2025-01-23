@@ -201,6 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String fileName = "profile_images/$userId.png";
 
       if (kIsWeb) {
+        // Selección de archivo en web
         final result = await FilePicker.platform.pickFiles(
           type: FileType.image,
           allowMultiple: false,
@@ -214,7 +215,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         fileBytes = result.files.first.bytes;
+        if (fileBytes == null) {
+          throw Exception("No se pudo leer el archivo en web.");
+        }
       } else {
+        // Selección de archivo en móvil
         final picker = ImagePicker();
         final XFile? image =
             await picker.pickImage(source: ImageSource.gallery);
@@ -228,20 +233,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         final file = io.File(image.path);
         if (!file.existsSync()) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: El archivo no existe.')),
-          );
-          return;
+          throw Exception("El archivo no existe.");
         }
 
         fileBytes = await file.readAsBytes();
-      }
-
-      if (fileBytes == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al leer el archivo.')),
-        );
-        return;
       }
 
       final ref = FirebaseStorage.instance.ref(fileName);
@@ -252,12 +247,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final uploadTask = ref.putData(fileBytes);
 
+      // Escuchar eventos de progreso
       uploadTask.snapshotEvents.listen((snapshot) {
-        if (snapshot.state == TaskState.running) {
-          final progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          print("Progreso de subida: $progress%");
-        }
+        final progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        print("Progreso de subida: $progress%");
       });
 
       final snapshot = await uploadTask;

@@ -54,21 +54,21 @@ class _StudentViewState extends State<StudentView> {
   }
 
   ImageProvider<Object> _getProfileImage() {
-    if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
-      return NetworkImage(profileImageUrl!);
-    } else if (selectedGender == 'Masculino') {
-      return NetworkImage(
+      if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
+        return NetworkImage(profileImageUrl!);
+      } else if (selectedGender == 'Masculino') {
+        return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
-      );
-    } else if (selectedGender == 'Femenino') {
-      return NetworkImage(
+        );
+      } else if (selectedGender == 'Femenino') {
+        return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
-      );
-    } else {
-      return NetworkImage(
+        );
+      } else {
+        return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
-      );
-    }
+        );
+      }
   }
 
   Future<void> _registerIngreso(BuildContext context) async {
@@ -153,22 +153,21 @@ class _StudentViewState extends State<StudentView> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'images/carnet3.jpg',
+              'images/carnet.png',
               fit: BoxFit.cover,
             ),
           ),
           Positioned(
-            top: MediaQuery.of(context).size.height * -0.05,
-            left: MediaQuery.of(context).size.width * 0.27,
+            top: MediaQuery.of(context).size.height * 0.06,
+            left: MediaQuery.of(context).size.width * 0.26,
             child: Container(
-              width: 265, 
-              height: 265,
+              width: MediaQuery.of(context).size.width * 0.6,
+              height: MediaQuery.of(context).size.width * 0.6,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 image: DecorationImage(
                   image: _getProfileImage(),
-                  fit: BoxFit
-                      .cover,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
