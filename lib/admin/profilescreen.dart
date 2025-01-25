@@ -349,22 +349,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const DropdownMenuItem(
                       value:
-                          'No especificado', // Asegúrate de incluir este valor
+                          'No especificado',
                       child: Text('No especificado'),
                     ),
                   ],
                 ),
-              ),
-            ),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                leading: const Icon(Icons.school, color: Colors.blue),
-                title: const Text('Carrera'),
-                subtitle: Text(userData['career'] ?? 'Sin carrera'),
               ),
             ),
             Card(
@@ -385,21 +374,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
-                  leading: const Icon(Icons.timer, color: Colors.purple),
-                  title: Text('Ciclo: ${_cycleData!['name']}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tiempo restante: ${_timeLeft.inDays} días, ${_timeLeft.inHours.remainder(24)} horas, ${_timeLeft.inMinutes.remainder(60)} minutos',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
+                  leading: const Icon(Icons.school, color: Colors.blue),
+                  title: const Text('Carrera'),
+                  subtitle: Text(userData['career'] ?? 'Sin carrera'),
                 ),
               ),
+            Card(
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                leading: const Icon(Icons.timer, color: Colors.purple),
+                title: Text('Ciclo: ${_cycleData!['name']}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tiempo restante: ${_timeLeft.inDays} días, ${_timeLeft.inHours.remainder(24)} horas, ${_timeLeft.inMinutes.remainder(60)} minutos',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
