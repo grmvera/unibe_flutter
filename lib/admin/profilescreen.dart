@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:io' as io;
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -182,41 +185,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _uploadProfileImage() async {
-    final usuarioProvider =
-        Provider.of<UsuarioProvider>(context, listen: false);
-    final userId = usuarioProvider.userData?['uid'];
+  final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
+  final String? token = usuarioProvider.token;
 
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Usuario no identificado.')),
+  if (token == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Error: No se encontró el token de autenticación.')),
+    );
+    return;
+  }
+
+  final userId = usuarioProvider.userData?['uid'];
+  if (userId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Error: Usuario no identificado.')),
+    );
+    return;
+  }
+
+  try {
+    Uint8List? fileBytes;
+    String fileName = "profile_images/$userId.png";
+
+    if (kIsWeb) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
       );
-      return;
-    }
 
-    try {
-      Uint8List? fileBytes;
-      String fileName = "profile_images/$userId.png";
-
-      if (kIsWeb) {
-        // Selección de archivo en web
-        final result = await FilePicker.platform.pickFiles(
-          type: FileType.image,
-          allowMultiple: false,
+      if (result == null || result.files.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
         );
+        return;
+      }
 
-        if (result == null || result.files.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
-          );
-          return;
-        }
+      fileBytes = result.files.first.bytes;
+      if (fileBytes == null) {
+        throw Exception("No se pudo leer el archivo en web.");
+      }
 
-        fileBytes = result.files.first.bytes;
-        if (fileBytes == null) {
-          throw Exception("No se pudo leer el archivo en web.");
-        }
+      final base64Image = base64Encode(fileBytes);
+      print("Tamaño de la imagen Base64: ${base64Image.length}");
+
+      final url = Uri.parse(
+          "https://us-central1-controlacceso-403b0.cloudfunctions.net/webUploadProfileImage");
+
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
+        },
+        body: jsonEncode({"imageData": base64Image}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final imageUrl = responseData['imageUrl'];
+
+        setState(() {
+          _profileImageUrl = imageUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Imagen actualizada correctamente.')),
+        );
       } else {
-        // Selección de archivo en móvil
+        throw Exception("Error al subir la imagen: ${response.body}");
+      }
+    } else {
+        // Lógica para Android
         final picker = ImagePicker();
         final XFile? image =
             await picker.pickImage(source: ImageSource.gallery);
@@ -234,38 +273,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         fileBytes = await file.readAsBytes();
+
+        final ref = FirebaseStorage.instance.ref(fileName);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Subiendo imagen, por favor espera...')),
+        );
+
+        final uploadTask = ref.putData(fileBytes);
+
+        // Escuchar eventos de progreso
+        uploadTask.snapshotEvents.listen((snapshot) {
+          final progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          print("Progreso de subida: $progress%");
+        });
+
+        final snapshot = await uploadTask;
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .update({'profileImage': downloadUrl});
+
+        setState(() {
+          _profileImageUrl = downloadUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Imagen actualizada correctamente.')),
+        );
       }
-
-      final ref = FirebaseStorage.instance.ref(fileName);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Subiendo imagen, por favor espera...')),
-      );
-
-      final uploadTask = ref.putData(fileBytes);
-
-      // Escuchar eventos de progreso
-      uploadTask.snapshotEvents.listen((snapshot) {
-        final progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        print("Progreso de subida: $progress%");
-      });
-
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({'profileImage': downloadUrl});
-
-      setState(() {
-        _profileImageUrl = downloadUrl;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Imagen actualizada correctamente.')),
-      );
     } catch (e) {
       print('Error al subir la imagen: $e');
       ScaffoldMessenger.of(context).showSnackBar(

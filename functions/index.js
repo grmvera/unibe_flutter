@@ -8,11 +8,12 @@ const updateCyclesAndUsers = require("./updatecyclesandusers");
 const webUploadProfileImage = require("./webUploadProfileImage");
 
 // Exportar la función de actualización masiva
-exports.webUploadProfileImage = webUploadProfileImage.webUploadProfileImage;
+exports.webUploadProfileImage = webUploadProfileImage.uploadProfileImage;
+exports.updateCyclesAndUsers = updateCyclesAndUsers.updateCyclesAndUsers;
 exports.deleteUser = deleteUser.deleteUser;
 exports.updateEmailsInBulk = updateEmailsInBulk;
 exports.sendEmailOnUserCreation = sendEmailOnUserCreation;
-exports.updateCyclesAndUsers = updateCyclesAndUsers.updateCyclesAndUsers;
+
 
 // Función para actualizar un único correo
 exports.updateUserEmail = functions.https.onRequest((req, res) => {
