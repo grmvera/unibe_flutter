@@ -1,8 +1,8 @@
 [
   {
-    "origin": ["*"],
+    "origin": ["http://localhost:51221", "https://controlacceso-403b0.web.app"],
     "method": ["GET", "POST", "PUT"],
-    "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type", "Authorization"]
+    "responseHeader": ["Content-Type", "Authorization"],
+    "maxAgeSeconds": 3600
   }
 ]

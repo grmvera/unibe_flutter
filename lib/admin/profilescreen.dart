@@ -23,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 2;
 
-  late Timer _timer;
+  Timer? _timer;
   Duration _timeLeft = Duration.zero;
   Map<String, dynamic>? _cycleData;
   String? _profileImageUrl;
@@ -37,42 +37,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchCycleData() async {
-    final usuarioProvider =
-        Provider.of<UsuarioProvider>(context, listen: false);
-    final String? cycleId = usuarioProvider.userData?['cycleId'];
+    try {
+      final usuarioProvider =
+          Provider.of<UsuarioProvider>(context, listen: false);
+      final String? cycleId = usuarioProvider.userData?['cycleId'];
 
-    if (cycleId != null) {
-      try {
+      if (cycleId != null && cycleId.isNotEmpty) {
         final DocumentSnapshot cycleSnapshot = await FirebaseFirestore.instance
             .collection('cycles')
             .doc(cycleId)
             .get();
 
         if (cycleSnapshot.exists) {
-          final data = cycleSnapshot.data() as Map<String, dynamic>;
-          setState(() {
-            _cycleData = data;
-            final DateTime endDate = DateTime.parse(data['endDate']);
-            _timeLeft = endDate.difference(DateTime.now());
+          final data = cycleSnapshot.data() as Map<String, dynamic>?;
 
-            if (_timeLeft.isNegative) {
-              _timeLeft = Duration.zero;
-            }
-
-            _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-              setState(() {
-                if (_timeLeft.inSeconds > 0) {
-                  _timeLeft = _timeLeft - const Duration(seconds: 1);
-                } else {
-                  _timer.cancel();
-                }
-              });
+          if (data != null && data.containsKey('endDate')) {
+            setState(() {
+              _cycleData = data;
+              final DateTime endDate =
+                  DateTime.tryParse(data['endDate']) ?? DateTime.now();
+              _timeLeft = endDate.difference(DateTime.now());
+              _timeLeft = _timeLeft.isNegative ? Duration.zero : _timeLeft;
             });
-          });
+          } else {
+            print('El ciclo no contiene información válida.');
+          }
+        } else {
+          print('El ciclo no existe en Firestore.');
         }
-      } catch (e) {
-        print('Error al obtener el ciclo: $e');
+      } else {
+        print('El cycleId es nulo o vacío.');
       }
+    } catch (e) {
+      print('Error al obtener el ciclo: $e');
     }
   }
 
@@ -82,29 +79,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Provider.of<UsuarioProvider>(context, listen: false);
       final String? userId = usuarioProvider.userData?['uid'];
 
-      if (userId == null) {
-        throw Exception("ID de usuario no encontrado.");
-      }
+      if (userId != null && userId.isNotEmpty) {
+        final documentSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
 
-      final documentSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-
-      if (documentSnapshot.exists) {
-        final data = documentSnapshot.data();
-
-        setState(() {
-          _profileImageUrl = data?['profileImage'];
-          _selectedGender = data?['gender'] ?? 'No especificado';
-        });
+        if (documentSnapshot.exists) {
+          final data = documentSnapshot.data();
+          if (data != null) {
+            setState(() {
+              _profileImageUrl = data['profileImage'] ?? '';
+              _selectedGender = data['gender'] ?? 'No especificado';
+            });
+          }
+        } else {
+          print("El documento del usuario no existe.");
+          setState(() {
+            _profileImageUrl = null;
+            _selectedGender = 'No especificado';
+          });
+        }
       } else {
-        // Manejar el caso de documento inexistente
-        print("El documento del usuario no existe.");
-        setState(() {
-          _profileImageUrl = null;
-          _selectedGender = 'No especificado';
-        });
+        print("El userId es nulo o vacío.");
       }
     } catch (e) {
       print("Error al cargar la imagen o el género de perfil: $e");
@@ -131,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -348,8 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Text('Femenino'),
                     ),
                     const DropdownMenuItem(
-                      value:
-                          'No especificado',
+                      value: 'No especificado',
                       child: Text('No especificado'),
                     ),
                   ],
@@ -379,26 +375,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   subtitle: Text(userData['career'] ?? 'Sin carrera'),
                 ),
               ),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                leading: const Icon(Icons.timer, color: Colors.purple),
-                title: Text('Ciclo: ${_cycleData!['name']}'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tiempo restante: ${_timeLeft.inDays} días, ${_timeLeft.inHours.remainder(24)} horas, ${_timeLeft.inMinutes.remainder(60)} minutos',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
+            if (userData['role'] == 'estudiante' && _cycleData != null)
+              Card(
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.timer, color: Colors.purple),
+                  title:
+                      Text('Ciclo: ${_cycleData?['name'] ?? 'No disponible'}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      Text(
+                        _cycleData != null
+                            ? 'Tiempo restante: ${_timeLeft.inDays} días, ${_timeLeft.inHours.remainder(24)} horas, ${_timeLeft.inMinutes.remainder(60)} minutos'
+                            : 'Datos del ciclo no disponibles',
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

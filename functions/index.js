@@ -5,8 +5,10 @@ const { updateEmailsInBulk } = require("./bulkFunctions");
 const { sendEmailOnUserCreation } = require("./emailService");
 const deleteUser = require("./deleteuser");
 const updateCyclesAndUsers = require("./updatecyclesandusers");
+const webUploadProfileImage = require("./webUploadProfileImage");
 
 // Exportar la función de actualización masiva
+exports.webUploadProfileImage = webUploadProfileImage.webUploadProfileImage;
 exports.deleteUser = deleteUser.deleteUser;
 exports.updateEmailsInBulk = updateEmailsInBulk;
 exports.sendEmailOnUserCreation = sendEmailOnUserCreation;
