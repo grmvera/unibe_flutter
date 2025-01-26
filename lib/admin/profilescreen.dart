@@ -341,7 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(height: 8),
                 Text(
-                  'Para ver los cambios aplicados adecuadamente, vuelva a iniciar sesión o actualice el sistema.',
+                  'Para ver los cambios aplicados adecuadamente, actualice el sistema.',
                   style: TextStyle(color: Colors.white70),
                 ),
               ],
