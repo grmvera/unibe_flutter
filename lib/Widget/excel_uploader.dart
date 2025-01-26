@@ -378,38 +378,43 @@ class _ExcelUploaderState extends State<ExcelUploader> {
         ),
         const SizedBox(height: 24),
         Center(
-          child: ElevatedButton.icon(
-            onPressed: selectedCycle == null
-                ? null
-                : () {
-                    _uploadExcel(context);
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCycle == null
-                  ? Colors.grey
-                  : const Color.fromARGB(255, 46, 62, 235),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: selectedCycle == null
+                  ? null
+                  : () {
+                      _uploadExcel(context);
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: selectedCycle == null
+                    ? Colors.grey
+                    : const Color(0xFFFCCC09),
+                foregroundColor: selectedCycle == null
+                    ? Colors.white70
+                    : const Color(0xFF00499C),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 24,
+                ),
+                elevation: 6,
+                shadowColor: Colors.black45,
               ),
-              padding: const EdgeInsets.symmetric(
-                vertical: 16,
-                horizontal: 24,
+              icon: const Icon(
+                Icons.upload_file,
+                size: 24,
+                color: Colors.white,
               ),
-              elevation: 6,
-              shadowColor: Colors.black45,
-            ),
-            icon: const Icon(
-              Icons.upload_file,
-              size: 24,
-              color: Colors.white,
-            ),
-            label: const Text(
-              'Cargar Archivo',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+              label: const Text(
+                'Cargar Archivo',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
           ),

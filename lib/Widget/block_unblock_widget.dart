@@ -17,13 +17,15 @@ class BlockUnblockStudentsWidget {
           title: Row(
             children: [
               const Icon(Icons.manage_accounts,
-                  color: Colors.blueAccent, size: 30),
+                  color: Color(0xFFFCCC09), 
+                  size: 30),
               const SizedBox(width: 10),
               const Text(
                 'Gestión de Estudiantes',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF00499C), 
                 ),
               ),
             ],
@@ -45,24 +47,32 @@ class BlockUnblockStudentsWidget {
           ),
           actionsAlignment: MainAxisAlignment.center,
           actions: [
-            _buildStyledButton(
-              context,
-              'Bloquear',
-              Colors.red,
-              Colors.white,
-              () async {
-                await _pickExcel(context, true);
-              },
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                _buildResponsiveButton(
+                  context,
+                  'Bloquear',
+                  const Color(0xFFFF6F61), 
+                  Colors.white,
+                  () async {
+                    await _pickExcel(context, true);
+                  },
+                ),
+                _buildResponsiveButton(
+                  context,
+                  'Desbloquear',
+                  const Color(0xFF27AE60), 
+                  Colors.white, 
+                  () async {
+                    await _pickExcel(context, false);
+                  },
+                ),
+              ],
             ),
-            _buildStyledButton(
-              context,
-              'Desbloquear',
-              Colors.green,
-              Colors.white,
-              () async {
-                await _pickExcel(context, false);
-              },
-            ),
+            const SizedBox(height: 8),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -78,10 +88,13 @@ class BlockUnblockStudentsWidget {
     );
   }
 
-  static Widget _buildStyledButton(BuildContext context, String label,
+  static Widget _buildResponsiveButton(BuildContext context, String label,
       Color bgColor, Color fgColor, VoidCallback onPressed) {
-    return SizedBox(
-      width: 120,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: 120,
+        maxWidth: MediaQuery.of(context).size.width * 0.4,
+      ),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -91,10 +104,14 @@ class BlockUnblockStudentsWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+          elevation: 4.0,
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -188,7 +205,7 @@ class BlockUnblockStudentsWidget {
 
       if (querySnapshot.docs.isEmpty) {
         print('No se encontró ningún usuario con el ID: $id');
-        continue; 
+        continue;
       }
 
       for (var doc in querySnapshot.docs) {
