@@ -149,14 +149,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             Colors.grey[300]!,
                           ])
                         : const LinearGradient(colors: [
-                            Color(0xFF6A11CB),
-                            Color(0xFF2575FC),
+                            Color(0xFFFCCC09),
+                            Color(0xFFFCCC09),
                           ]),
                     boxShadow: _isLoading
                         ? []
                         : [
                             BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.3),
+                              color: const Color(0xFF00499C)
+                                  .withOpacity(0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             )
@@ -175,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text(
                             'INICIAR',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF00499C),
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),

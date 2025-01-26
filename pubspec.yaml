@@ -30,6 +30,12 @@ dependencies:
   image: ^3.0.1
   url_launcher: ^6.0.20
   android_intent_plus: ^2.0.6
+  flutter_launcher_icons: ^0.10.0
+
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "images/unibe_logo_am.png"
 
 dev_dependencies:
   flutter_test:

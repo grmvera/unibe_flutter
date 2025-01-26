@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UsuarioProvider()),
       ],
       child: MaterialApp(
-        title: 'Unibe App Control',
+        title: 'UNIB.E KeyPass',
         theme: ThemeData(primarySwatch: Colors.blue),
         debugShowCheckedModeBanner: false,
         supportedLocales: const [
