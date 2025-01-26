@@ -185,76 +185,101 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _uploadProfileImage() async {
-  final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
-  final String? token = usuarioProvider.token;
+    final usuarioProvider =
+        Provider.of<UsuarioProvider>(context, listen: false);
+    final String? token = usuarioProvider.token;
 
-  if (token == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Error: No se encontró el token de autenticación.')),
-    );
-    return;
-  }
-
-  final userId = usuarioProvider.userData?['uid'];
-  if (userId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Error: Usuario no identificado.')),
-    );
-    return;
-  }
-
-  try {
-    Uint8List? fileBytes;
-    String fileName = "profile_images/$userId.png";
-
-    if (kIsWeb) {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: No se encontró el token de autenticación.'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
+      return;
+    }
 
-      if (result == null || result.files.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
-        );
-        return;
-      }
-
-      fileBytes = result.files.first.bytes;
-      if (fileBytes == null) {
-        throw Exception("No se pudo leer el archivo en web.");
-      }
-
-      final base64Image = base64Encode(fileBytes);
-      print("Tamaño de la imagen Base64: ${base64Image.length}");
-
-      final url = Uri.parse(
-          "https://us-central1-controlacceso-403b0.cloudfunctions.net/webUploadProfileImage");
-
-      final response = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token"
-        },
-        body: jsonEncode({"imageData": base64Image}),
+    final userId = usuarioProvider.userData?['uid'];
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: Usuario no identificado.'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
+      return;
+    }
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final imageUrl = responseData['imageUrl'];
+    try {
+      Uint8List? fileBytes;
+      String fileName = "profile_images/$userId.png";
 
-        setState(() {
-          _profileImageUrl = imageUrl;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Imagen actualizada correctamente.')),
+      if (kIsWeb) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          allowMultiple: false,
         );
+
+        if (result == null || result.files.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No se seleccionó ninguna imagen.'),
+              backgroundColor: Colors.orangeAccent,
+            ),
+          );
+          return;
+        }
+
+        fileBytes = result.files.first.bytes;
+        if (fileBytes == null) {
+          throw Exception("No se pudo leer el archivo en web.");
+        }
+
+        final base64Image = base64Encode(fileBytes);
+        print("Tamaño de la imagen Base64: ${base64Image.length}");
+
+        final url = Uri.parse(
+            "https://us-central1-controlacceso-403b0.cloudfunctions.net/webUploadProfileImage");
+
+        final response = await http.post(
+          url,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token"
+          },
+          body: jsonEncode({"imageData": base64Image}),
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          final imageUrl = responseData['imageUrl'];
+
+          setState(() {
+            _profileImageUrl = imageUrl;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Imagen actualizada correctamente.',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Text(
+                    'Para ver los cambios aplicados, vuelva a iniciar sesión.',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        } else {
+          throw Exception("Error al subir la imagen: ${response.body}");
+        }
       } else {
-        throw Exception("Error al subir la imagen: ${response.body}");
-      }
-    } else {
         // Lógica para Android
         final picker = ImagePicker();
         final XFile? image =
@@ -262,7 +287,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         if (image == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
+            SnackBar(
+              content: Text('No se seleccionó ninguna imagen.'),
+              backgroundColor: Colors.orangeAccent,
+            ),
           );
           return;
         }
@@ -277,7 +305,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final ref = FirebaseStorage.instance.ref(fileName);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subiendo imagen, por favor espera...')),
+          SnackBar(
+            content: Text('Subiendo imagen, por favor espera...'),
+            backgroundColor: Colors.blueAccent,
+          ),
         );
 
         final uploadTask = ref.putData(fileBytes);
@@ -302,13 +333,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Imagen actualizada correctamente.')),
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Imagen actualizada correctamente.',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                Text(
+                  'Para ver los cambios aplicados adecuadamente, vuelva a iniciar sesión.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 5),
+          ),
         );
       }
     } catch (e) {
       print('Error al subir la imagen: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar la imagen de perfil: $e')),
+        SnackBar(
+          content: Text('Error al actualizar la imagen de perfil: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }
