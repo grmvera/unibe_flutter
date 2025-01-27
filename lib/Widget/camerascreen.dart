@@ -15,6 +15,7 @@ class _CameraScreenState extends State<CameraScreen> {
   QRViewController? _qrController; 
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   bool isCameraInitialized = false;
+  bool isProcessing = false; // Bandera para control de procesamiento único
   String? statusMessage; 
 
   @override
@@ -69,14 +70,16 @@ class _CameraScreenState extends State<CameraScreen> {
     _qrController = controller;
 
     _qrController!.scannedDataStream.listen((scanData) async {
-      if (scanData.code != null && scanData.code!.isNotEmpty) {
+      if (!isProcessing && scanData.code != null && scanData.code!.isNotEmpty) {
+        isProcessing = true; // Marca como en procesamiento
         setState(() {
           statusMessage = 'Código QR detectado: ${scanData.code}';
         });
         print('Código QR detectado: ${scanData.code}');
         await _processQRCode(scanData.code!);
         _qrController?.pauseCamera(); 
-      } else {
+        isProcessing = false; // Libera la bandera después de completar el procesamiento
+      } else if (!isProcessing) {
         setState(() {
           statusMessage = 'No se detectó ningún código QR.';
         });
@@ -128,27 +131,26 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-Future<Map<String, dynamic>?> fetchStudentFromFirebase(String idNumber) async {
-  try {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('idNumber', isEqualTo: idNumber)
-        .get();
+  Future<Map<String, dynamic>?> fetchStudentFromFirebase(String idNumber) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('idNumber', isEqualTo: idNumber)
+          .get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      final userData = querySnapshot.docs.first.data();
-      userData['docId'] = querySnapshot.docs.first.id;
+      if (querySnapshot.docs.isNotEmpty) {
+        final userData = querySnapshot.docs.first.data();
+        userData['docId'] = querySnapshot.docs.first.id;
 
-      print('Usuario encontrado: ${userData['idNumber']}');
-      return userData;
-    } else {
-      print('No se encontró ningún usuario con el ID: $idNumber');
+        print('Usuario encontrado: ${userData['idNumber']}');
+        return userData;
+      } else {
+        print('No se encontró ningún usuario con el ID: $idNumber');
+        return null;
+      }
+    } catch (e) {
+      print('Error al buscar en Firebase: $e');
       return null;
     }
-  } catch (e) {
-    print('Error al buscar en Firebase: $e');
-    return null;
   }
-}
-
 }

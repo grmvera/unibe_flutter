@@ -108,95 +108,119 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAdminView() {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-      children: [
-        _buildLargeActionButton(
-          'Lista de Estudiantes',
-          Icons.people,
-          const Color(0xFF1225F5),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-            );
-          },
-        ),
-        _buildLargeActionButton(
-          'Crear Usarios',
-          Icons.person_add,
-          const Color(0xFF1225F5),
-          onTap: () {
-            _showStudentDialog(context);
-          },
-        ),
-        _buildLargeActionButton(
-          'Bloquear y Desbloquear Estudiante',
-          Icons.person_off,
-          const Color(0xFF1225F5),
-          onTap: () {
-            BlockUnblockStudentsWidget.showBlockUnblockDialog(context);
-          },
-        ),
-        _buildLargeActionButton(
-          'Creación de Ciclo',
-          Icons.event,
-          const Color(0xFF1225F5),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const CycleManagementScreen()),
-            );
-          },
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double buttonWidth = constraints.maxWidth * 0.9; 
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          children: [
+            _buildLargeActionButton(
+              'Lista de Estudiantes',
+              Icons.people,
+              const Color(0xFFFCCC09),   
+              textColor: const Color(0xFF00499C), 
+              width: buttonWidth,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const AdminHomeScreen()),
+                );
+              },
+            ),
+            _buildLargeActionButton(
+              'Crear Usuarios',
+              Icons.person_add,
+              const Color(0xFFFCCC09),   
+              textColor: const Color(0xFF00499C), 
+              width: buttonWidth,
+              onTap: () {
+                _showStudentDialog(context);
+              },
+            ),
+            _buildLargeActionButton(
+              'Bloquear y Desbloquear Estudiante',
+              Icons.person_off,
+              const Color(0xFFFCCC09),   
+              textColor: const Color(0xFF00499C), 
+              width: buttonWidth,
+              onTap: () {
+                BlockUnblockStudentsWidget.showBlockUnblockDialog(context);
+              },
+            ),
+            _buildLargeActionButton(
+              'Creación de Ciclo',
+              Icons.event,
+              const Color(0xFFFCCC09),   
+              textColor: const Color(0xFF00499C), 
+              width: buttonWidth,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const CycleManagementScreen()),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildLargeActionButton(String title, IconData icon, Color color,
-      {required VoidCallback onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: color, width: 2),
+  Widget _buildLargeActionButton(
+      String title, IconData icon, Color? backgroundColor,
+      {Color? textColor, required VoidCallback onTap, required double width}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12.0),
+      width: width,
+      height: 90.0, 
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor, 
+          foregroundColor: textColor, 
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withOpacity(0.2),
+          elevation: 2.0,
+        ),
+        onPressed: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(width: 16.0),
+                Container(
+                  width: 40.0,
+                  height: 40.0,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: backgroundColor, size: 24.0),
                 ),
-                child: Icon(
-                  icon,
-                  size: 30,
-                  color: color,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+                const SizedBox(width: 16.0),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: textColor ?? Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0, 
+                    ),
+                    textAlign: TextAlign.left,
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            const SizedBox(height: 4.0),
+          ],
         ),
       ),
     );
@@ -236,16 +260,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
-              Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                alignment: WrapAlignment.center,
+              Column(
                 children: [
                   _buildDialogButton(
                     context: dialogContext,
                     title: 'Crear Usuario',
                     icon: Icons.person_add,
-                    color: const Color(0xFF1225F5),
+                    backgroundColor: const Color(0xFFFCCC09),
+                    textColor: const Color(0xFF00499C),
                     onPressed: () {
                       Navigator.pop(dialogContext);
                       showDialog(
@@ -254,11 +276,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 12),
                   _buildDialogButton(
                     context: dialogContext,
                     title: 'Cargar Archivo',
                     icon: Icons.upload_file,
-                    color: const Color(0xFF27AE60),
+                    backgroundColor: const Color(0xFFFCCC09),
+                    textColor: const Color(0xFF00499C),
                     onPressed: () {
                       Navigator.pop(dialogContext);
                       showDialog(
@@ -306,26 +330,46 @@ class _HomeScreenState extends State<HomeScreen> {
     required BuildContext context,
     required String title,
     required IconData icon,
-    required Color color,
+    required Color backgroundColor,
+    required Color textColor,
     required VoidCallback onPressed,
   }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 24, color: Colors.white),
-      label: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          elevation: 2.0,
         ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+              width: 24.0,
+              height: 24.0,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: backgroundColor, size: 16.0),
+            ),
+            const SizedBox(width: 8.0),
+            Text(
+              title,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       ),
     );
   }
