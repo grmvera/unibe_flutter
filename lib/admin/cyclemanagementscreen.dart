@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -37,25 +39,23 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
 
   void _startAutoDeactivateTimer() {
     _timer = Timer.periodic(const Duration(hours: 1), (timer) async {
-      final now = DateTime.now();
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('cycles').get();
+      try {
+        // Realiza una solicitud POST a la función HTTP
+        final url = Uri.parse(
+            'https://us-central1-controlacceso-403b0.cloudfunctions.net/updateCyclesAndUsers');
+        final response = await http.post(url);
 
-      for (var doc in querySnapshot.docs) {
-        final endDate = DateTime.parse(doc['endDate']);
-        final isActive = doc['isActive'] ?? true;
-
-        if (now.isAfter(endDate) && isActive) {
-          await FirebaseFirestore.instance
-              .collection('cycles')
-              .doc(doc.id)
-              .update({'isActive': false});
-        } else if (now.isBefore(endDate) && !isActive) {
-          await FirebaseFirestore.instance
-              .collection('cycles')
-              .doc(doc.id)
-              .update({'isActive': true});
+        if (response.statusCode == 200) {
+          // Analiza la respuesta en caso de éxito
+          final data = jsonDecode(response.body);
+          print('Ciclos y usuarios actualizados: ${data['message']}');
+        } else {
+          // Manejo de errores en caso de fallo
+          print('Error al actualizar ciclos y usuarios: ${response.body}');
         }
+      } catch (e) {
+        // Manejo de excepciones
+        print('Excepción al llamar a la función: $e');
       }
     });
   }
