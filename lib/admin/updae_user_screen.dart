@@ -170,7 +170,8 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
   Future<void> updateEmailInAuth(String userId, String newEmail) async {
     try {
       final response = await http.post(
-        Uri.parse('https://us-central1-controlacceso-403b0.cloudfunctions.net/updateUserEmail'),
+        Uri.parse(
+            'https://us-central1-controlacceso-403b0.cloudfunctions.net/updateUserEmail'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'uid': userId,
@@ -196,6 +197,7 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
     final usuarioProvider = Provider.of<UsuarioProvider>(context);
     final isStudent = widget.userData['role'] == 'estudiante';
@@ -217,24 +219,30 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Actualizar Usuario',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: screenWidth * 0.06, // Adaptación proporcional
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.02,
+                      vertical: screenWidth * 0.01,
+                    ),
                     decoration: BoxDecoration(
                       color: isBlocked ? Colors.red : Colors.green,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       isBlocked ? 'Bloqueado' : 'Activo',
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        // Elimina `const` aquí también
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.04, // Adaptación proporcional
+                      ),
                     ),
                   ),
                 ],
@@ -284,8 +292,10 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
               ),
               const SizedBox(height: 20),
               if (isStudent)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
                   children: [
                     ElevatedButton(
                       onPressed: () {
@@ -319,7 +329,6 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                     ElevatedButton(
                       onPressed: () async {
                         try {
-                          // Busca el documento del usuario por su idNumber
                           final querySnapshot = await FirebaseFirestore.instance
                               .collection('users')
                               .where('idNumber',
@@ -328,7 +337,6 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
 
                           if (querySnapshot.docs.isNotEmpty) {
                             final userDoc = querySnapshot.docs.first;
-                            // Añade el docId al objeto userData
                             final updatedUserData = {
                               ...widget.userData,
                               'docId': userDoc.id,
@@ -338,8 +346,7 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => StudentView(
-                                  userData:
-                                      updatedUserData, // Envía el userData con el docId
+                                  userData: updatedUserData,
                                   showAppBar: true,
                                 ),
                               ),

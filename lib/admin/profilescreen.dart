@@ -235,9 +235,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           throw Exception("No se pudo leer el archivo en web.");
         }
 
-        final base64Image = base64Encode(fileBytes);
-        print("Tamaño de la imagen Base64: ${base64Image.length}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Subiendo imagen, por favor espera...'),
+            backgroundColor: Colors.blueAccent,
+          ),
+        );
 
+        final base64Image = base64Encode(fileBytes);
         final url = Uri.parse(
             "https://us-central1-controlacceso-403b0.cloudfunctions.net/webUploadProfileImage");
 
@@ -267,7 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
                   Text(
-                    'Para ver los cambios aplicados, vuelva a iniciar sesión.',
+                    'Para ver los cambios aplicados adecuadamente, actualice el sistema.',
                     style: TextStyle(color: Colors.white70),
                   ),
                 ],
@@ -280,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           throw Exception("Error al subir la imagen: ${response.body}");
         }
       } else {
-        // Lógica para Android
+        // Subida en Android/iOS
         final picker = ImagePicker();
         final XFile? image =
             await picker.pickImage(source: ImageSource.gallery);

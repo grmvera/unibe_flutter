@@ -336,8 +336,18 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
                 if (_selectedProfile == 'Estudiante')
                   DropdownButtonFormField<String>(
                     value: _selectedCareer,
-                    items: ['Ingeniería de Software', 'Medicina', 'Derecho']
-                        .map((career) {
+                    items: [
+                      'Ingeniería de Software',
+                      'Medicina',
+                      'Derecho',
+                      'Estetica Integral',
+                      'Nutrcion y Dieta',
+                      'Psicologia Clinica',
+                      'Gastronomia',
+                      'Producion y Audiovisual',
+                      'Enfermeria',
+                      'Fisioterapia'
+                    ].map((career) {
                       return DropdownMenuItem<String>(
                         value: career,
                         child: Text(career),

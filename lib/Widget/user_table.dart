@@ -233,38 +233,72 @@ class _UserTableState extends State<UserTable> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        // Botón "Anterior"
                         ElevatedButton.icon(
                           onPressed: _currentPage > 0
                               ? () => setState(() => _currentPage--)
                               : null,
-                          icon: const Icon(Icons.arrow_back),
-                          label: const Text('Anterior'),
+                          icon: Icon(Icons.arrow_back,
+                              size: MediaQuery.of(context).size.width * 0.05),
+                          label: Text(
+                            'Anterior',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width *
+                                  0.04, // Adaptación de texto
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
+                            padding: EdgeInsets.symmetric(
+                              vertical: MediaQuery.of(context).size.height *
+                                  0.02, // Altura responsive
+                              horizontal: MediaQuery.of(context).size.width *
+                                  0.04, // Anchura responsive
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width *
+                                0.03), // Espaciado adaptable
+                        // Texto de la página actual
                         Text(
                           'Página ${_currentPage + 1}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Texto adaptable
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width *
+                                0.03), // Espaciado adaptable
+                        // Botón "Siguiente"
                         ElevatedButton.icon(
                           onPressed: endIndex < filteredDocs.length
                               ? () => setState(() => _currentPage++)
                               : null,
-                          icon: const Icon(Icons.arrow_forward),
-                          label: const Text('Siguiente'),
+                          icon: Icon(Icons.arrow_forward,
+                              size: MediaQuery.of(context).size.width * 0.05),
+                          label: Text(
+                            'Siguiente',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width *
+                                  0.04, // Adaptación de texto
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              vertical: MediaQuery.of(context).size.height *
+                                  0.02, // Altura responsive
+                              horizontal: MediaQuery.of(context).size.width *
+                                  0.04, // Anchura responsive
                             ),
                           ),
                         ),
