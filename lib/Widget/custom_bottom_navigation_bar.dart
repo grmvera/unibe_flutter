@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // Para usar kIsWeb
 import 'package:unibe_app_control/Widget/camerascreen.dart';
 import 'package:unibe_app_control/admin/profilescreen.dart';
 
@@ -22,7 +23,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         label: 'Inicio',
         tooltip: 'Ir a Inicio',
       ),
-      if (userRole != 'estudiante')
+      if (!kIsWeb && userRole != 'estudiante')
         BottomNavigationBarItem(
           icon: const Icon(Icons.camera_alt),
           label: 'Escanear',
@@ -53,12 +54,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
       child: BottomNavigationBar(
         currentIndex: adjustedIndex,
         onTap: (index) {
-          if (userRole != 'estudiante' && index == 1) {
+          if (!kIsWeb && userRole != 'estudiante' && index == 1) {
+            // Navegar a la pantalla de cámara solo en dispositivos móviles
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const CameraScreen()),
             );
-          } else if (index == (userRole == 'estudiante' ? 1 : 2)) {
+          } else if ((!kIsWeb && userRole != 'estudiante' && index == 2) ||
+              (kIsWeb && index == 1)) {
+            // Navegar al perfil ajustando índices para web y móvil
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
