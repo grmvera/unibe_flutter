@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class DeleteUserDialog extends StatelessWidget {
+class DeleteUserDialog extends StatefulWidget {
   final String userId;
   final String userUid;
 
@@ -12,6 +12,13 @@ class DeleteUserDialog extends StatelessWidget {
     required this.userUid,
   }) : super(key: key);
 
+  @override
+  _DeleteUserDialogState createState() => _DeleteUserDialogState();
+}
+
+class _DeleteUserDialogState extends State<DeleteUserDialog> {
+  bool _isDeleting = false;
+
   Future<void> _deleteUser(BuildContext context, String? userUid) async {
     if (userUid == null || userUid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -20,14 +27,17 @@ class DeleteUserDialog extends StatelessWidget {
       return;
     }
 
+    setState(() {
+      _isDeleting = true;
+    });
+
     try {
-      const String url = 'https://us-central1-controlacceso-403b0.cloudfunctions.net/deleteUser';
+      const String url =
+          'https://us-central1-controlacceso-403b0.cloudfunctions.net/deleteUser';
 
       final response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode(<String, String>{'uid': userUid}),
       );
 
@@ -40,15 +50,17 @@ class DeleteUserDialog extends StatelessWidget {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Error al eliminar usuario: ${response.statusCode} - ${response.body}'),
-          ),
+              content: Text('Error al eliminar usuario: ${response.body}')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar usuario: $e')),
       );
+    } finally {
+      setState(() {
+        _isDeleting = false;
+      });
     }
   }
 
@@ -81,9 +93,8 @@ class DeleteUserDialog extends StatelessWidget {
               Text(
                 '¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
-                ),
+                style:
+                    TextStyle(fontSize: constraints.maxWidth < 600 ? 14 : 16),
               ),
               const SizedBox(height: 15),
               Icon(
@@ -101,13 +112,10 @@ class DeleteUserDialog extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                textStyle: TextStyle(
-                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
-                ),
+                textStyle:
+                    TextStyle(fontSize: constraints.maxWidth < 600 ? 14 : 16),
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: _isDeleting ? null : () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
@@ -116,17 +124,25 @@ class DeleteUserDialog extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                textStyle: TextStyle(
-                  fontSize: constraints.maxWidth < 600 ? 14 : 16,
-                ),
+                textStyle:
+                    TextStyle(fontSize: constraints.maxWidth < 600 ? 14 : 16),
               ),
-              onPressed: () {
-                _deleteUser(context, userUid);
-              },
-              child: const Text(
-                'Eliminar',
-                style: TextStyle(color: Colors.white),
-              ),
+              onPressed: _isDeleting
+                  ? null
+                  : () => _deleteUser(context, widget.userUid),
+              child: _isDeleting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Eliminar',
+                      style: TextStyle(color: Colors.white),
+                    ),
             ),
           ],
         );
