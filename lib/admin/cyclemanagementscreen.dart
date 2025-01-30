@@ -23,41 +23,54 @@ class _CycleManagementScreenState extends State<CycleManagementScreen> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isLoading = false;
-  late Timer _timer;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _startAutoDeactivateTimer();
+    _updateCyclesAndUsers();
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
+  Future<void> _updateCyclesAndUsers() async {
+    final url = Uri.parse(
+        'https://us-central1-controlacceso-403b0.cloudfunctions.net/updateCyclesAndUsers');
+
+    try {
+      final response = await http.post(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Ciclos y usuarios actualizados: ${data['message']}');
+        _showSnackBar('Ciclos y usuarios actualizados correctamente.');
+      } else {
+        print('Error al actualizar ciclos y usuarios: ${response.body}');
+        _showSnackBar('Error al actualizar ciclos y usuarios.');
+      }
+    } catch (e) {
+      print('Excepción al llamar a la función: $e');
+      _showSnackBar('Error al procesar la actualización.');
+    }
+  }
+
+
   void _startAutoDeactivateTimer() {
     _timer = Timer.periodic(const Duration(hours: 1), (timer) async {
-      try {
-        // Realiza una solicitud POST a la función HTTP
-        final url = Uri.parse(
-            'https://us-central1-controlacceso-403b0.cloudfunctions.net/updateCyclesAndUsers');
-        final response = await http.post(url);
-
-        if (response.statusCode == 200) {
-          // Analiza la respuesta en caso de éxito
-          final data = jsonDecode(response.body);
-          print('Ciclos y usuarios actualizados: ${data['message']}');
-        } else {
-          // Manejo de errores en caso de fallo
-          print('Error al actualizar ciclos y usuarios: ${response.body}');
-        }
-      } catch (e) {
-        // Manejo de excepciones
-        print('Excepción al llamar a la función: $e');
-      }
+      await _updateCyclesAndUsers();
     });
+  }
+
+  // Mostrar mensajes en pantalla
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {

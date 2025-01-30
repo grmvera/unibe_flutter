@@ -10,11 +10,12 @@ exports.updateCyclesAndUsers = functions
             try {
                 console.log("Inicio de la actualización de ciclos y usuarios...");
 
-                const now = new Date();
+                const now = admin.firestore.Timestamp.now();
+
                 const cyclesSnapshot = await admin.firestore()
-                    .collection('cycles')
-                    .where('isActive', '==', true)
-                    .where('endDate', '<=', now.toISOString())
+                    .collection("cycles")
+                    .where("isActive", "==", true)
+                    .where("endDate", "<=", now)
                     .get();
 
                 if (cyclesSnapshot.empty) {
@@ -23,22 +24,29 @@ exports.updateCyclesAndUsers = functions
                 }
 
                 const batch = admin.firestore().batch();
+                const cycleIds = [];
 
-                for (const cycleDoc of cyclesSnapshot.docs) {
+                cyclesSnapshot.docs.forEach((cycleDoc) => {
                     const cycleId = cycleDoc.id;
-                    batch.update(cycleDoc.ref, { isActive: false });
+                    cycleIds.push(cycleId);
+                    batch.update(cycleDoc.ref, { isActive: false }); 
+                });
 
-                    const usersSnapshot = await admin.firestore()
-                        .collection('users')
-                        .where('cycleId', '==', cycleId)
-                        .get();
+                console.log(`Ciclos a desactivar: ${cycleIds.length}`);
 
-                    for (const userDoc of usersSnapshot.docs) {
-                        batch.update(userDoc.ref, { status: false });
-                    }
-                }
+                const usersSnapshot = await admin.firestore()
+                    .collection("users")
+                    .where("cycleId", "in", cycleIds)
+                    .get();
+
+                console.log(`Usuarios a desactivar: ${usersSnapshot.size}`);
+
+                usersSnapshot.docs.forEach((userDoc) => {
+                    batch.update(userDoc.ref, { status: false });
+                });
 
                 await batch.commit();
+
                 console.log("Ciclos y usuarios actualizados correctamente.");
                 return res.status(200).send({ message: "Ciclos y usuarios actualizados correctamente." });
             } catch (error) {

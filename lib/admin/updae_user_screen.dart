@@ -195,193 +195,197 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-    final usuarioProvider = Provider.of<UsuarioProvider>(context);
-    final isStudent = widget.userData['role'] == 'estudiante';
+ @override
+Widget build(BuildContext context) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final usuarioProvider = Provider.of<UsuarioProvider>(context);
+  final isStudent = widget.userData['role'] == 'estudiante';
 
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: CustomAppBar(
-        userName: usuarioProvider.userData?['firstName'] ?? 'Usuario',
-        userRole: usuarioProvider.userData?['role'] ?? 'Sin Rol',
-        scaffoldKey: scaffoldKey,
-      ),
-      endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Actualizar Usuario',
+  return Scaffold(
+    key: scaffoldKey,
+    appBar: CustomAppBar(
+      userName: usuarioProvider.userData?['firstName'] ?? 'Usuario',
+      userRole: usuarioProvider.userData?['role'] ?? 'Sin Rol',
+      scaffoldKey: scaffoldKey,
+    ),
+    endDrawer: CustomDrawer(userData: usuarioProvider.userData!),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Actualizar Usuario',
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.06,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.02,
+                    vertical: screenWidth * 0.01,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isBlocked ? Colors.red : Colors.green,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    isBlocked ? 'Bloqueado' : 'Activo',
                     style: TextStyle(
-                      fontSize: screenWidth * 0.06, // Adaptación proporcional
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: screenWidth * 0.04,
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.02,
-                      vertical: screenWidth * 0.01,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isBlocked ? Colors.red : Colors.green,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      isBlocked ? 'Bloqueado' : 'Activo',
-                      style: TextStyle(
-                        // Elimina `const` aquí también
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: screenWidth * 0.04, // Adaptación proporcional
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: firstNameController,
-                decoration: InputDecoration(
-                  labelText: 'Nombre',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: firstNameController,
+              decoration: InputDecoration(
+                labelText: 'Nombre',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: lastNameController,
-                decoration: InputDecoration(
-                  labelText: 'Apellido',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: lastNameController,
+              decoration: InputDecoration(
+                labelText: 'Apellido',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: idNumberController,
-                enabled: false,
-                decoration: InputDecoration(
-                  labelText: 'Cédula',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: idNumberController,
+              enabled: false,
+              decoration: InputDecoration(
+                labelText: 'Cédula',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.grey[300],
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: 'Correo Electrónico',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Correo Electrónico',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (isStudent)
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
+            ),
+            const SizedBox(height: 20),
+            // Botones con estilo mejorado
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        bloquearUsuario(widget.userId);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text('Bloquear'),
-                    ),
-                    if (isBlocked)
-                      ElevatedButton(
+                    Expanded(
+                      child: ElevatedButton(
                         onPressed: () {
-                          desbloquearUsuario(widget.userId);
+                          bloquearUsuario(widget.userId);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Bloquear'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isBlocked
+                            ? () {
+                                desbloquearUsuario(widget.userId);
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isBlocked ? Colors.green : Colors.grey[400],
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: const Text('Desbloquear'),
                       ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          final querySnapshot = await FirebaseFirestore.instance
-                              .collection('users')
-                              .where('idNumber',
-                                  isEqualTo: widget.userData['idNumber'])
-                              .get();
-
-                          if (querySnapshot.docs.isNotEmpty) {
-                            final userDoc = querySnapshot.docs.first;
-                            final updatedUserData = {
-                              ...widget.userData,
-                              'docId': userDoc.id,
-                            };
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => StudentView(
-                                  userData: updatedUserData,
-                                  showAppBar: true,
-                                ),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Usuario no encontrado en la base de datos.'),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Error al buscar el usuario: $e')),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text('Ver Carnet'),
                     ),
                   ],
                 ),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
+                const SizedBox(height: 16),
+                if (isStudent)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final querySnapshot = await FirebaseFirestore.instance
+                          .collection('users')
+                          .where('idNumber',
+                              isEqualTo: widget.userData['idNumber'])
+                          .get();
+
+                      if (querySnapshot.docs.isNotEmpty) {
+                        final userDoc = querySnapshot.docs.first;
+                        final updatedUserData = {
+                          ...widget.userData,
+                          'docId': userDoc.id,
+                        };
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => StudentView(
+                              userData: updatedUserData,
+                              showAppBar: true,
+                            ),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Usuario no encontrado en la base de datos.'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error al buscar el usuario: $e')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.qr_code),
+                  label: const Text('Ver Carnet'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
                   onPressed: () async {
                     String email = emailController.text.trim();
                     if (email.isEmpty) {
@@ -394,20 +398,18 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                     }
                     await resetPassword(email);
                   },
+                  icon: const Icon(Icons.lock_reset),
+                  label: const Text('Restablecer Contraseña'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
                     backgroundColor: Colors.orange,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  child: const Text('Restablecer Contraseña'),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
+                const SizedBox(height: 16),
+                ElevatedButton(
                   onPressed: isLoading
                       ? null
                       : () async {
@@ -428,7 +430,8 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                               return;
                             }
 
-                            await updateEmailInAuth(widget.userId, newEmail);
+                            await updateEmailInAuth(
+                                widget.userId, newEmail);
 
                             await FirebaseFirestore.instance
                                 .collection('users')
@@ -453,10 +456,9 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: isLoading
@@ -464,7 +466,8 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation(Colors.white),
                             ),
                             SizedBox(width: 10),
                             Text(
@@ -475,16 +478,18 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
                         )
                       : const Text('Guardar Cambios'),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        userRole: usuarioProvider.userData!['role'],
-      ),
-    );
-  }
+    ),
+    bottomNavigationBar: CustomBottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: _onItemTapped,
+      userRole: usuarioProvider.userData!['role'],
+    ),
+  );
+}
+
 }
