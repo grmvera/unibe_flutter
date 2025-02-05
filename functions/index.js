@@ -7,7 +7,6 @@ const deleteUser = require("./deleteuser");
 const updateCyclesAndUsers = require("./updatecyclesandusers");
 const webUploadProfileImage = require("./webUploadProfileImage");
 
-// Exportar la función de actualización masiva
 exports.webUploadProfileImage = webUploadProfileImage.uploadProfileImage;
 exports.updateCyclesAndUsers = updateCyclesAndUsers.updateCyclesAndUsers;
 exports.deleteUser = deleteUser.deleteUser;
@@ -15,19 +14,16 @@ exports.updateEmailsInBulk = updateEmailsInBulk;
 exports.sendEmailOnUserCreation = sendEmailOnUserCreation;
 
 
-// Función para actualizar un único correo
 exports.updateUserEmail = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
     try {
       const { uid, newEmail } = req.body;
 
-      // Validar los parámetros
       if (!uid || !newEmail) {
         res.status(400).send({ error: "Faltan parámetros uid o newEmail." });
         return;
       }
 
-      // Actualizar el correo
       await admin.auth().updateUser(uid, { email: newEmail });
       res.status(200).send({ message: "Correo actualizado exitosamente." });
     } catch (error) {

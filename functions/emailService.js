@@ -2,16 +2,15 @@ const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
 const corsMiddleware = require("./corsMiddleware");
 
-// Configurar Nodemailer
+
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "geovanny00vera@gmail.com", // Tu correo Gmail
-        pass: "knws qpad eohp hedz", // Contraseña de aplicación generada
+        user: "geovanny00vera@gmail.com", 
+        pass: "knws qpad eohp hedz", 
     },
 });
 
-// Función para enviar correos
 exports.sendEmailOnUserCreation = functions
     .region("us-central1")
     .runWith({ memory: "256MB", timeoutSeconds: 60 })
