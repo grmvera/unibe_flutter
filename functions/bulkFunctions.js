@@ -10,19 +10,16 @@ exports.updateEmailsInBulk = functions
       try {
         const { users } = req.body;
 
-        // Validar que el body contenga un array de usuarios
         if (!users || !Array.isArray(users)) {
           res.status(400).send({ error: "Faltan parámetros o formato inválido." });
           return;
         }
 
-        // Iterar sobre los usuarios y actualizar sus correos
         const results = [];
         for (const user of users) {
           const { uid, newEmail } = user;
 
           if (!uid || !newEmail) {
-            // Saltar usuarios con datos incompletos
             results.push({ uid, status: "skipped", message: "Datos incompletos." });
             continue;
           }

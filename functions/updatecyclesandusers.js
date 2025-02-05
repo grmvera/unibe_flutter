@@ -1,60 +1,86 @@
 const functions = require("firebase-functions");
 const admin = require("./firebaseAdmin");
-const corsMiddleware = require("./corsMiddleware");
 
 exports.updateCyclesAndUsers = functions
-    .region("us-central1")
-    .runWith({ memory: "256MB", timeoutSeconds: 60 })
-    .https.onRequest((req, res) => {
-        corsMiddleware(req, res, async () => {
-            try {
-                console.log("Inicio de la actualización de ciclos y usuarios...");
+  .region("us-central1")
+  .runWith({ memory: "256MB", timeoutSeconds: 60 })
+  .pubsub.schedule('0 0 * * *') 
+  .timeZone('America/Guayaquil') 
+  .onRun(async (context) => {
+    try {
+      console.log("Inicio de la actualización de ciclos y usuarios...");
 
-                const now = admin.firestore.Timestamp.now();
+      
+      const now = new Date().toISOString(); 
+      console.log("Fecha actual (now):", now);
 
-                const cyclesSnapshot = await admin.firestore()
-                    .collection("cycles")
-                    .where("isActive", "==", true)
-                    .where("endDate", "<=", now)
-                    .get();
+      const cyclesSnapshot = await admin.firestore()
+        .collection("cycles")
+        .where("isActive", "==", true)
+        .where("endDate", "<=", now) 
+        .get();
 
-                if (cyclesSnapshot.empty) {
-                    console.log("No hay ciclos vencidos para procesar.");
-                    return res.status(200).send({ message: "No hay ciclos vencidos para actualizar." });
-                }
+        console.log(`Ciclos vencidos encontrados: ${cyclesSnapshot.size}`);
+      if (cyclesSnapshot.empty) {
+        console.log("No hay ciclos vencidos para procesar.");
+        return;
+      }
 
-                const batch = admin.firestore().batch();
-                const cycleIds = [];
+      let cycleIds = [];
+      let updates = [];
 
-                cyclesSnapshot.docs.forEach((cycleDoc) => {
-                    const cycleId = cycleDoc.id;
-                    cycleIds.push(cycleId);
-                    batch.update(cycleDoc.ref, { isActive: false }); 
-                });
+      cyclesSnapshot.docs.forEach((cycleDoc) => {
+        const cycleId = cycleDoc.id;
+        cycleIds.push(cycleId);
+        updates.push({ ref: cycleDoc.ref, data: { isActive: false } });
+      });
 
-                console.log(`Ciclos a desactivar: ${cycleIds.length}`);
+      console.log(`Ciclos a desactivar: ${cycleIds.length}`);
 
-                const usersSnapshot = await admin.firestore()
-                    .collection("users")
-                    .where("cycleId", "in", cycleIds)
-                    .get();
+      const userBatches = [];
+      while (cycleIds.length) {
+        userBatches.push(cycleIds.splice(0, 10));
+      }
 
-                console.log(`Usuarios a desactivar: ${usersSnapshot.size}`);
+      let totalUsers = 0;
 
-                usersSnapshot.docs.forEach((userDoc) => {
-                    batch.update(userDoc.ref, { status: false });
-                });
+      for (const batchIds of userBatches) {
+        const usersSnapshot = await admin.firestore()
+          .collection("users")
+          .where("cycleId", "in", batchIds) 
+          .get();
 
-                await batch.commit();
+        console.log(`Usuarios a desactivar en este lote: ${usersSnapshot.size}`);
+        totalUsers += usersSnapshot.size;
 
-                console.log("Ciclos y usuarios actualizados correctamente.");
-                return res.status(200).send({ message: "Ciclos y usuarios actualizados correctamente." });
-            } catch (error) {
-                console.error("Error al actualizar ciclos y usuarios:", error);
-                return res.status(500).send({
-                    error: "Error interno al procesar la actualización.",
-                    message: error.message,
-                });
-            }
+        usersSnapshot.docs.forEach((userDoc) => {
+          updates.push({ ref: userDoc.ref, data: { status: false } });
         });
-    });
+      }
+
+      console.log(`Total de usuarios a desactivar: ${totalUsers}`);
+
+      const commitBatches = async (updates) => {
+        let batch = admin.firestore().batch();
+        let counter = 0;
+
+        for (let i = 0; i < updates.length; i++) {
+          batch.update(updates[i].ref, updates[i].data);
+          counter++;
+
+          if (counter === 500 || i === updates.length - 1) {
+            await batch.commit();
+            console.log(`Batch de ${counter} operaciones ejecutado.`);
+            batch = admin.firestore().batch();
+            counter = 0;
+          }
+        }
+      };
+
+      await commitBatches(updates);
+
+      console.log("Ciclos y usuarios actualizados correctamente.");
+    } catch (error) {
+      console.error("Error al actualizar ciclos y usuarios:", error);
+    }
+  });
