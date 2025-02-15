@@ -49,7 +49,7 @@ Antes de instalar y ejecutar este proyecto, asegúrate de tener lo siguiente:
   - Coloca estos archivos en los directorios correspondientes (android/app para   Android, ios/Runner para iOS).
 5. Ejecuta la aplicación:
       ```bash
-      flutter run
+      flutter run -d web-server --web-port=51221
 ## Uso
 Administrador:
   - Crear cuentas de estudiantes (masivamente o individualmente).
