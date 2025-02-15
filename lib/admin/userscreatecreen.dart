@@ -141,7 +141,7 @@ class _UserCreationScreenState extends State<UserCreationScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Usuario creado, pero error al enviar correo')),
+                content: Text('Usuario creado, pero error al enviar correo')), 
           );
         }
 
