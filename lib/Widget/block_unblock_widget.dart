@@ -14,7 +14,8 @@ class BlockUnblockStudentsWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          title: Row(
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.manage_accounts,
                   color: Color(0xFFFCCC09), 
@@ -28,11 +29,6 @@ class BlockUnblockStudentsWidget {
                   color: Color(0xFF00499C), 
                 ),
               ),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
               SizedBox(height: 10),
               Text(
                 '¿Qué acción deseas realizar?\nSelecciona un archivo Excel con los números de cédula para bloquear o desbloquear estudiantes.',
