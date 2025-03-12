@@ -54,21 +54,21 @@ class _StudentViewState extends State<StudentView> {
   }
 
   ImageProvider<Object> _getProfileImage() {
-      if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
-        return NetworkImage(profileImageUrl!);
-      } else if (selectedGender == 'Masculino') {
-        return NetworkImage(
+    if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
+      return NetworkImage(profileImageUrl!);
+    } else if (selectedGender == 'Masculino') {
+      return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fmasculino.png?alt=media&token=ba6cc3c1-615e-4d53-ac96-e35d94da6be7',
-        );
-      } else if (selectedGender == 'Femenino') {
-        return NetworkImage(
+      );
+    } else if (selectedGender == 'Femenino') {
+      return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Ffemenino.png?alt=media&token=d5955ec0-4847-44e8-99e1-bc340f0ab302',
-        );
-      } else {
-        return NetworkImage(
+      );
+    } else {
+      return NetworkImage(
         'https://firebasestorage.googleapis.com/v0/b/controlacceso-403b0.firebasestorage.app/o/default_images%2Fpersona.png?alt=media&token=df204812-6c08-436d-ad65-ac0c21a50b61',
-        );
-      }
+      );
+    }
   }
 
   Future<void> _registerIngreso(BuildContext context) async {
@@ -114,6 +114,8 @@ class _StudentViewState extends State<StudentView> {
     final bool isQrActive = _isQrAvailable(lastAccess);
     final int minutesRemaining =
         isQrActive ? 0 : _getMinutesUntilAvailable(lastAccess);
+
+    final bool isBlocked = widget.userData['status'] == false;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -180,60 +182,85 @@ class _StudentViewState extends State<StudentView> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (isQrActive)
-                  QrCodeWidget(
-                    studentId: widget.userData['idNumber'],
-                    qrColor: Colors.white,
-                    size: 200.0,
-                  )
-                else
+                if (isBlocked)
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.lightBlueAccent,
+                      color: Colors.redAccent,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      'QR no disponible',
-                      style: TextStyle(
+                    child: const Column(
+                      children: [
+                        Icon(Icons.block, size: 40, color: Colors.white),
+                        SizedBox(height: 10),
+                        Text(
+                          'Cuenta bloqueada',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else ...[
+                  if (isQrActive)
+                    QrCodeWidget(
+                      studentId: widget.userData['idNumber'],
+                      qrColor: Colors.white,
+                      size: 200.0,
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.lightBlueAccent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'QR no disponible',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  if (widget.showDetails) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      '${widget.userData['lastName']} ${widget.userData['firstName']}',
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                  ),
-                if (widget.showDetails) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    '${widget.userData['lastName']} ${widget.userData['firstName']}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Text(
+                      widget.userData['idNumber'],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    widget.userData['idNumber'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
+                  ],
+                  const SizedBox(height: 20),
+                  if (!isQrActive)
+                    Text(
+                      'Acceso reciente: puedes volver a escanear en $minutesRemaining minutos.',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
                 ],
-                const SizedBox(height: 20),
-                if (!isQrActive)
-                  Text(
-                    'Acceso reciente: puedes volver a escanear en $minutesRemaining minutos.',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
               ],
             ),
           ),
