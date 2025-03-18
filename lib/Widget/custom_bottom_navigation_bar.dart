@@ -55,14 +55,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
         currentIndex: adjustedIndex,
         onTap: (index) {
           if (!kIsWeb && userRole != 'estudiante' && index == 1) {
-            // Navegar a la pantalla de cámara solo en dispositivos móviles
+            // mostrar boton para movil para administradores
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const CameraScreen()),
             );
-          } else if ((!kIsWeb && userRole != 'estudiante' && index == 2) ||
+          } else if ((userRole == 'estudiante' && index == 1) ||
+              (!kIsWeb && userRole != 'estudiante' && index == 2) ||
               (kIsWeb && index == 1)) {
-            // Navegar al perfil ajustando índices para web y móvil
+            // dirijir a la pantalla de perfil
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
