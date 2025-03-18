@@ -108,9 +108,10 @@ class _UserTableState extends State<UserTable> {
                     scrollDirection: Axis.horizontal,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        minWidth: MediaQuery.of(context).size.width,
+                        minWidth: MediaQuery.of(context).size.width * 0.9,
                       ),
                       child: DataTable(
+                        columnSpacing: 20,
                         headingRowColor: WidgetStateColor.resolveWith(
                             (states) => Colors.grey[300]!),
                         dataRowColor: WidgetStateColor.resolveWith(
@@ -233,72 +234,44 @@ class _UserTableState extends State<UserTable> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Botón "Anterior"
-                        ElevatedButton.icon(
-                          onPressed: _currentPage > 0
-                              ? () => setState(() => _currentPage--)
-                              : null,
-                          icon: Icon(Icons.arrow_back,
-                              size: MediaQuery.of(context).size.width * 0.05),
-                          label: Text(
-                            'Anterior',
-                            style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width *
-                                  0.04, // Adaptación de texto
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: MediaQuery.of(context).size.height *
-                                  0.02, // Altura responsive
-                              horizontal: MediaQuery.of(context).size.width *
-                                  0.04, // Anchura responsive
+                        Expanded(
+                          flex: 1,
+                          child: ElevatedButton.icon(
+                            onPressed: _currentPage > 0
+                                ? () => setState(() => _currentPage--)
+                                : null,
+                            icon: Icon(Icons.arrow_back, size: 20),
+                            label: const Text('Anterior'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
                         ),
-                        SizedBox(
-                            width: MediaQuery.of(context).size.width *
-                                0.03), // Espaciado adaptable
-                        // Texto de la página actual
+                        const SizedBox(width: 10),
                         Text(
                           'Página ${_currentPage + 1}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: MediaQuery.of(context).size.width *
-                                0.04, // Texto adaptable
-                          ),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        SizedBox(
-                            width: MediaQuery.of(context).size.width *
-                                0.03), // Espaciado adaptable
-                        // Botón "Siguiente"
-                        ElevatedButton.icon(
-                          onPressed: endIndex < filteredDocs.length
-                              ? () => setState(() => _currentPage++)
-                              : null,
-                          icon: Icon(Icons.arrow_forward,
-                              size: MediaQuery.of(context).size.width * 0.05),
-                          label: Text(
-                            'Siguiente',
-                            style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width *
-                                  0.04, // Adaptación de texto
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: MediaQuery.of(context).size.height *
-                                  0.02, // Altura responsive
-                              horizontal: MediaQuery.of(context).size.width *
-                                  0.04, // Anchura responsive
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: ElevatedButton.icon(
+                            onPressed: endIndex < filteredDocs.length
+                                ? () => setState(() => _currentPage++)
+                                : null,
+                            icon: Icon(Icons.arrow_forward, size: 20),
+                            label: const Text('Siguiente'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
                         ),
@@ -386,7 +359,7 @@ class _UserTableState extends State<UserTable> {
                 ElevatedButton(
                   onPressed: () {
                     _setUserDeleted(userId);
-                    Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+                    Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -425,45 +398,52 @@ class _UserTableState extends State<UserTable> {
   }
 
   Widget _buildCycleDropdown() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _cyclesStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
-        }
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: 200, // Mínimo ancho para pantallas pequeñas
+        maxWidth: MediaQuery.of(context).size.width * 0.9, // Ancho dinámico
+      ),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: _cyclesStream,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const CircularProgressIndicator();
+          }
 
-        final cycles = snapshot.data!.docs;
+          final cycles = snapshot.data!.docs;
 
-        return DropdownButtonFormField<String>(
-          value: selectedCycleId,
-          decoration: InputDecoration(
-            labelText: 'Seleccionar Ciclo',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+          return DropdownButtonFormField<String>(
+            value: selectedCycleId,
+            decoration: InputDecoration(
+              labelText: 'Seleccionar Ciclo',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-          ),
-          items: [
-            const DropdownMenuItem<String>(
-              value: null,
-              child: Text('Todos los ciclos'),
-            ),
-            ...cycles.where((cycle) => cycle['isActive'] == true).map((cycle) {
-              // Filtrar solo los ciclos activos
-              return DropdownMenuItem<String>(
-                value: cycle.id,
-                child: Text(cycle['name']),
-              );
-            }).toList(),
-          ],
-          onChanged: (value) {
-            setState(() {
-              selectedCycleId = value;
-            });
-          },
-        );
-      },
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('Todos los ciclos'),
+              ),
+              ...cycles
+                  .where((cycle) => cycle['isActive'] == true)
+                  .map((cycle) {
+                return DropdownMenuItem<String>(
+                  value: cycle.id,
+                  child: Text(cycle['name']),
+                );
+              }).toList(),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedCycleId = value;
+              });
+            },
+          );
+        },
+      ),
     );
   }
 
