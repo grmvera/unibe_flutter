@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:unibe_app_control/login/users_provider.dart';
+import 'package:flutter/foundation.dart';
 
 class ExcelUploader extends StatefulWidget {
   const ExcelUploader({super.key});
@@ -59,209 +60,200 @@ class _ExcelUploaderState extends State<ExcelUploader> {
       );
 
       if (result != null && result.files.isNotEmpty) {
-        var filePath = result.files.single.path; // Obtener la ruta del archivo
+        Uint8List? fileBytes;
 
-        if (filePath != null) {
-          print('Ruta del archivo: $filePath');
+        if (kIsWeb) {
+          fileBytes = result.files.single.bytes;
+        } else {
+          final filePath = result.files.single.path;
+          if (filePath != null) {
+            print('Ruta del archivo: $filePath');
+            fileBytes = await File(filePath).readAsBytes();
+          }
+        }
 
-          // Leer los bytes desde el archivo usando la ruta
-          var fileBytes = await File(filePath).readAsBytes();
+        if (fileBytes != null && fileBytes.isNotEmpty) {
+          print('Bytes leídos correctamente: ${fileBytes.length}');
+          var excel = Excel.decodeBytes(fileBytes);
 
-          if (fileBytes.isNotEmpty) {
-            print('Bytes leídos correctamente: ${fileBytes.length}');
-            var excel = Excel.decodeBytes(fileBytes);
+          if (excel.tables.isEmpty) {
+            print('El archivo no contiene hojas válidas.');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('El archivo no tiene hojas válidas')),
+            );
+            return;
+          }
 
-            // Validar si el archivo contiene hojas válidas
-            if (excel.tables.isEmpty) {
-              print('El archivo no contiene hojas válidas.');
+          String fileName = result.files.single.name;
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: const Text('Subiendo Archivo'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Procesando archivo: $fileName'),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Creando usuarios, por favor espera...',
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                  const SizedBox(height: 16),
+                  const CircularProgressIndicator(),
+                ],
+              ),
+            ),
+          );
+
+          List<Map<String, String>> usersToUpdate = [];
+          bool errorOccurred = false;
+
+          for (var table in excel.tables.keys) {
+            List<List<Data?>> rows = excel.tables[table]!.rows;
+
+            if (rows.isEmpty) {
+              print('La hoja "$table" no tiene filas.');
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('El archivo no tiene hojas válidas')),
+                SnackBar(content: Text('La hoja "$table" está vacía.')),
               );
+              Navigator.pop(context);
               return;
             }
 
-            String fileName = result.files.single.name;
+            for (var row in rows.skip(1)) {
+              try {
+                var idNumber = row[0]?.value?.toString();
+                var firstName = row[1]?.value?.toString();
+                var lastName = row[2]?.value?.toString();
+                var email = row[3]?.value?.toString();
+                var career = row[4]?.value?.toString();
+                var semestre = row[5]?.value?.toString();
+                var password = idNumber;
 
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => AlertDialog(
-                title: const Text('Subiendo Archivo'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Procesando archivo: $fileName'),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Creando usuarios, por favor espera...',
-                      style: TextStyle(fontStyle: FontStyle.italic),
-                    ),
-                    const SizedBox(height: 16),
-                    const CircularProgressIndicator(),
-                  ],
-                ),
-              ),
-            );
+                if (idNumber == null ||
+                    idNumber.isEmpty ||
+                    firstName == null ||
+                    firstName.isEmpty ||
+                    lastName == null ||
+                    lastName.isEmpty ||
+                    email == null ||
+                    email.isEmpty ||
+                    career == null ||
+                    career.isEmpty ||
+                    semestre == null ||
+                    semestre.isEmpty) {
+                  throw Exception('Datos incompletos en la fila: $row');
+                }
 
-            List<Map<String, String>> usersToUpdate = [];
-            bool errorOccurred = false;
+                print('Procesando fila: $row');
 
-            for (var table in excel.tables.keys) {
-              List<List<Data?>> rows = excel.tables[table]!.rows;
+                var existingUsers = await FirebaseFirestore.instance
+                    .collection('users')
+                    .where('idNumber', isEqualTo: idNumber)
+                    .get();
 
-              // Validar si las filas están vacías
-              if (rows.isEmpty) {
-                print('La hoja "$table" no tiene filas.');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('La hoja "$table" está vacía.')),
-                );
-                Navigator.pop(context);
-                return;
-              }
+                if (existingUsers.docs.isNotEmpty) {
+                  var userDoc = existingUsers.docs.first;
 
-              for (var row in rows.skip(1)) {
-                try {
-                  // Validar datos en las filas
-                  var idNumber = row[0]?.value?.toString();
-                  var firstName = row[1]?.value?.toString();
-                  var lastName = row[2]?.value?.toString();
-                  var email = row[3]?.value?.toString();
-                  var career = row[4]?.value?.toString();
-                  var semestre = row[5]?.value?.toString();
-                  var password = idNumber;
-
-                  if (idNumber == null ||
-                      idNumber.isEmpty ||
-                      firstName == null ||
-                      firstName.isEmpty ||
-                      lastName == null ||
-                      lastName.isEmpty ||
-                      email == null ||
-                      email.isEmpty ||
-                      career == null ||
-                      career.isEmpty ||
-                      semestre == null ||
-                      semestre.isEmpty) {
-                    throw Exception('Datos incompletos en la fila: $row');
-                  }
-
-                  print('Procesando fila: $row');
-
-                  // Lógica para crear o actualizar usuarios
-                  var existingUsers = await FirebaseFirestore.instance
+                  await FirebaseFirestore.instance
                       .collection('users')
-                      .where('idNumber', isEqualTo: idNumber)
-                      .get();
+                      .doc(userDoc.id)
+                      .update({
+                    'firstName': firstName,
+                    'lastName': lastName,
+                    'email': email,
+                    'career': career,
+                    'semestre': semestre,
+                    'cycleId': selectedCycle,
+                    'status': true,
+                    'updated_at': DateTime.now(),
+                    'isDeleted': false,
+                    'profileImage': '',
+                    'created':
+                        usuarioProvider.userData!['firstName'].toString(),
+                    if (!userDoc.data().containsKey('lastAccess'))
+                      'lastAccess': null,
+                  });
 
-                  if (existingUsers.docs.isNotEmpty) {
-                    // Actualizar usuario existente
-                    var userDoc = existingUsers.docs.first;
+                  await _sendEmail(email, "$firstName $lastName", idNumber);
 
+                  if (userDoc['email'] != email) {
+                    usersToUpdate.add({'uid': userDoc.id, 'newEmail': email});
+                  }
+                } else {
+                  UserCredential userCredential = await FirebaseAuth.instance
+                      .createUserWithEmailAndPassword(
+                    email: email,
+                    password: password!,
+                  );
+
+                  User? user = userCredential.user;
+
+                  if (user != null) {
                     await FirebaseFirestore.instance
                         .collection('users')
-                        .doc(userDoc.id)
-                        .update({
+                        .doc(user.uid)
+                        .set({
+                      'uid': user.uid,
+                      'idNumber': idNumber,
                       'firstName': firstName,
                       'lastName': lastName,
                       'email': email,
                       'career': career,
+                      'role': 'estudiante',
                       'semestre': semestre,
                       'cycleId': selectedCycle,
+                      'information_input': DateTime.now(),
+                      'isFirstLogin': true,
                       'status': true,
-                      'updated_at': DateTime.now(),
+                      'lastAccess': null,
                       'isDeleted': false,
                       'profileImage': '',
                       'created':
                           usuarioProvider.userData!['firstName'].toString(),
-                      if (!userDoc.data().containsKey('lastAccess'))
-                        'lastAccess': null,
                     });
 
                     await _sendEmail(email, "$firstName $lastName", idNumber);
-
-                    if (userDoc['email'] != email) {
-                      usersToUpdate.add({'uid': userDoc.id, 'newEmail': email});
-                    }
-                  } else {
-                    // Crear usuario nuevo
-                    UserCredential userCredential = await FirebaseAuth.instance
-                        .createUserWithEmailAndPassword(
-                      email: email,
-                      password: password!,
-                    );
-
-                    User? user = userCredential.user;
-
-                    if (user != null) {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .set({
-                        'uid': user.uid,
-                        'idNumber': idNumber,
-                        'firstName': firstName,
-                        'lastName': lastName,
-                        'email': email,
-                        'career': career,
-                        'role': 'estudiante',
-                        'semestre': semestre,
-                        'cycleId': selectedCycle,
-                        'information_input': DateTime.now(),
-                        'isFirstLogin': true,
-                        'status': true,
-                        'lastAccess': null,
-                        'isDeleted': false,
-                        'profileImage': '',
-                        'created':
-                            usuarioProvider.userData!['firstName'].toString(),
-                      });
-
-                      await _sendEmail(email, "$firstName $lastName", idNumber);
-                    }
                   }
-                } catch (e) {
-                  errorOccurred = true;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al procesar fila: $e')),
-                  );
                 }
-              }
-            }
-
-            if (usersToUpdate.isNotEmpty) {
-              try {
-                await _updateEmailsInBulk(usersToUpdate);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Correos actualizados en Firebase Auth')),
-                );
               } catch (e) {
+                errorOccurred = true;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error en actualización masiva: $e')),
+                  SnackBar(content: Text('Error al procesar fila: $e')),
                 );
               }
             }
+          }
 
-            Navigator.pop(context);
-
-            if (!errorOccurred) {
+          if (usersToUpdate.isNotEmpty) {
+            try {
+              await _updateEmailsInBulk(usersToUpdate);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Usuarios creados con éxito')),
+                const SnackBar(
+                    content: Text('Correos actualizados en Firebase Auth')),
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error en actualización masiva: $e')),
               );
             }
-          } else {
-            print('Los bytes del archivo están vacíos.');
+          }
+
+          Navigator.pop(context);
+
+          if (!errorOccurred) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('El archivo no contiene datos o está vacío')),
+              const SnackBar(content: Text('Usuarios creados con éxito')),
             );
           }
         } else {
-          print('No se pudo obtener la ruta del archivo.');
+          print('Los bytes del archivo están vacíos o no se pudieron obtener.');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('No se pudo procesar el archivo seleccionado')),
+                content: Text('El archivo no contiene datos o está vacío')),
           );
         }
       } else {
