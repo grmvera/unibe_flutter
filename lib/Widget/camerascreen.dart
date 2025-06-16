@@ -1,8 +1,9 @@
-import 'dart:convert'; 
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart'; 
-import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'student_view.dart';
+
+// ...existing code...
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -12,11 +13,10 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  QRViewController? _qrController; 
-  final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  // Elimina todo lo relacionado con QRViewController y QRView
   bool isCameraInitialized = false;
-  bool isProcessing = false; // Bandera para control de procesamiento único
-  String? statusMessage; 
+  bool isProcessing = false;
+  String? statusMessage;
 
   @override
   void initState() {
@@ -28,7 +28,6 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   void dispose() {
-    _qrController?.dispose();
     super.dispose();
   }
 
@@ -41,7 +40,12 @@ class _CameraScreenState extends State<CameraScreen> {
           Expanded(
             flex: 5,
             child: isCameraInitialized
-                ? _buildQRScanner()
+                ? const Center(
+                    child: Text(
+                      'Funcionalidad de escaneo QR no implementada.',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  )
                 : const Center(child: CircularProgressIndicator()),
           ),
           if (statusMessage != null)
@@ -59,61 +63,32 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  Widget _buildQRScanner() {
-    return QRView(
-      key: _qrKey,
-      onQRViewCreated: _onQRViewCreated,
-    );
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    _qrController = controller;
-
-    _qrController!.scannedDataStream.listen((scanData) async {
-      if (!isProcessing && scanData.code != null && scanData.code!.isNotEmpty) {
-        isProcessing = true; // Marca como en procesamiento
-        setState(() {
-          statusMessage = 'Código QR detectado: ${scanData.code}';
-        });
-        print('Código QR detectado: ${scanData.code}');
-        await _processQRCode(scanData.code!);
-        _qrController?.pauseCamera(); 
-        isProcessing = false; // Libera la bandera después de completar el procesamiento
-      } else if (!isProcessing) {
-        setState(() {
-          statusMessage = 'No se detectó ningún código QR.';
-        });
-        print('No se detectó ningún código QR');
-      }
-    });
-  }
-
+  // Puedes dejar los métodos de procesamiento si los necesitas para el futuro,
+  // pero actualmente no se usan porque no hay escaneo QR.
   Future<void> _processQRCode(String qrData) async {
     try {
       Map<String, dynamic> data = {};
       try {
-        data = json.decode(qrData); 
+        data = json.decode(qrData);
       } catch (e) {
-        data['id'] = qrData; 
+        data['id'] = qrData;
       }
 
       if (data.containsKey('id')) {
         final studentData = await fetchStudentFromFirebase(data['id']);
         if (studentData != null) {
           setState(() {
-            statusMessage = null; 
+            statusMessage = null;
           });
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => StudentView(
                 userData: studentData,
-                showAppBar: true, 
+                showAppBar: true,
               ),
             ),
-          ).then((_) {
-            _qrController?.resumeCamera(); 
-          });
+          );
         } else {
           setState(() {
             statusMessage = 'Estudiante con ID ${data['id']} no encontrado.';
@@ -141,16 +116,13 @@ class _CameraScreenState extends State<CameraScreen> {
       if (querySnapshot.docs.isNotEmpty) {
         final userData = querySnapshot.docs.first.data();
         userData['docId'] = querySnapshot.docs.first.id;
-
-        print('Usuario encontrado: ${userData['idNumber']}');
         return userData;
       } else {
-        print('No se encontró ningún usuario con el ID: $idNumber');
         return null;
       }
     } catch (e) {
-      print('Error al buscar en Firebase: $e');
       return null;
     }
   }
 }
+// ...existing code...
