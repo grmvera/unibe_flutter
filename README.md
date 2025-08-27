@@ -61,6 +61,8 @@ Estudiantes:
   - Escanear códigos QR para registrar accesos.
 
 ## Contacto
+- Desarrollador: Tabata Mishell Mendoza Mendoza
+- Email: tabatamendoza1726@gmail.com
 - Desarrollador: Geovanny Rodolfo Vera Murillo
 - Email: geovanny00vera@gmail.com
 
